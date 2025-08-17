@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+/* Enable manual dark-mode toggling via `.dark` on <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes sheen {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Utility class for animated gradient borders */
+.gradient-border {
+  background: linear-gradient(90deg, #60a5fa, #a78bfa, #60a5fa);
+  background-size: 200% 100%;
+  animation: sheen 6s linear infinite;
+}

@@ -1,0 +1,6 @@
+@profileSiteBackEnd_HostAddress = http://localhost:5015
+
+GET {{profileSiteBackEnd_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
