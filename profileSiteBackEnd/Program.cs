@@ -12,20 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using profileSiteBackEnd;
 
 var builder = WebApplication.CreateBuilder(args);
-using (var scope = builder.Services.BuildServiceProvider().CreateScope())
-{
-    // Initialize the database if needed
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-
-    if (!db.Projects.Any()) db.Projects.AddRange(SampleData.GetProjects());
-    if (!db.Posts.Any()) db.Posts.AddRange(SampleData.GetPosts());
-    if (!db.Profiles.Any()) db.Profiles.Add(SampleData.GetProfile());
-    if (!db.Experiences.Any()) db.Experiences.AddRange(SampleData.GetExperience());
-    if (!db.Educations.Any()) db.Educations.AddRange(SampleData.GetEducation());
-    if (!db.Certifications.Any()) db.Certifications.AddRange(SampleData.GetCertifications());
-    db.SaveChanges();
-}
 
 //Admin config
 var adminUser = builder.Configuration["Admin:Username"] ?? "Admin";
@@ -37,12 +23,13 @@ var isDev = builder.Environment.IsDevelopment();
 builder.Services.AddRouting(o => o.LowercaseUrls = true);
 
 // Add EF Core with SQLite or SQL Server
-builder.Services.AddDbContext<AppDbContext>(o =>
-{
-    //o.UseInMemoryDatabase("ProfileSite");
-    o.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")); // Uncomment for SQLite
-    //o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")); // Uncomment for SQL Server
-});
+var cs = builder.Configuration.GetConnectionString("Default")
+         ?? builder.Configuration.GetConnectionString("DefaultConnection")
+         ?? "Data Source=app.db";
+
+builder.Services.AddDbContext<AppDbContext>(o => o.UseSqlite(cs));
+
+builder.Services.AddControllers();
 
 //Authentication and Authorization
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -101,6 +88,7 @@ builder.Services.AddSwaggerGen();
 
 //CORS for local dev
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:5173" };
+
 builder.Services.AddCors(o =>
 {
     o.AddPolicy("vite", p => p
@@ -136,6 +124,22 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 builder.Services.AddSingleton<Store>();
 
 var app = builder.Build();
+
+app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+
+    if (!db.Projects.Any()) db.Projects.AddRange(SampleData.GetProjects());
+    if (!db.Posts.Any()) db.Posts.AddRange(SampleData.GetPosts());
+    if (!db.Profiles.Any()) db.Profiles.Add(SampleData.GetProfile());
+    if (!db.Experiences.Any()) db.Experiences.AddRange(SampleData.GetExperience());
+    if (!db.Educations.Any()) db.Educations.AddRange(SampleData.GetEducation());
+    if (!db.Certifications.Any()) db.Certifications.AddRange(SampleData.GetCertifications());
+    db.SaveChanges();
+}
 
 app.UseCors("vite");
 
@@ -326,7 +330,7 @@ admin.MapDelete("/projects/{slug}", (Store s, string slug) =>
     return Results.NoContent();
 }).AddEndpointFilter(new AntiforgeryFilter());
 
-
+#region <Resume import api endpoint>
 // Import endpoint to update in-memory data from JSON (for quick resume-driven updates)
 //app.MapPost("/api/import", ([FromBody] ResumeImport import) =>
 //{
@@ -338,6 +342,7 @@ admin.MapDelete("/projects/{slug}", (Store s, string slug) =>
 //    if (import.Certifications is not null) certifications = import.Certifications;
 //    return Results.Ok(new { ok = true });
 //});
+#endregion
 
 app.Run();
 //Minimal anti-forgery filter for non-GETs

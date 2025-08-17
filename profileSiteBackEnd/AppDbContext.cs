@@ -23,12 +23,28 @@ namespace profileSiteBackEnd
             b.Entity<Project>().HasKey(x => x.Slug);
             b.Entity<Post>().HasKey(x => x.Slug);
 
-            //Add simple integer keys for items that didnt have one
-            b.Entity<Experience>().HasKey(x => x.Id);
-            b.Entity<Education>().HasKey(x => x.Id);
-            b.Entity<Certification>().HasKey(x => x.Id);
-            b.Entity<Profile>().HasKey(x => x.Id);
+            // Shadow keys so you don't have to edit your model classes right now
+            b.Entity<Profile>().Property<int>("Id").ValueGeneratedOnAdd();
+            b.Entity<Profile>().HasKey("Id");
 
+            b.Entity<Experience>().Property<int>("Id").ValueGeneratedOnAdd();
+            b.Entity<Experience>().HasKey("Id");
+
+            b.Entity<Education>().Property<int>("Id").ValueGeneratedOnAdd();
+            b.Entity<Education>().HasKey("Id");
+
+            b.Entity<Certification>().Property<int>("Id").ValueGeneratedOnAdd();
+            b.Entity<Certification>().HasKey("Id");
+
+            b.Entity<Profile>().OwnsMany(p => p.Links, nav =>
+            {
+                nav.WithOwner().HasForeignKey("ProfileId");
+                nav.Property<int>("Id");               // shadow PK for owned row
+                nav.HasKey("Id");
+                nav.Property(l => l.Label).HasMaxLength(128);
+                nav.Property(l => l.Url).HasMaxLength(2048);
+                nav.ToTable("ProfileLinks");           // optional nice table name
+            });
             //Map List<string> as json text columns
             var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
