@@ -71,6 +71,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         };
     });
 builder.Services.AddAuthorization();
+builder.Services.AddScoped<DbSeeder>();
 
 //Antiforgery setup
 builder.Services.AddAntiforgery(o =>
@@ -129,16 +130,8 @@ app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-
-    if (!db.Projects.Any()) db.Projects.AddRange(SampleData.GetProjects());
-    if (!db.Posts.Any()) db.Posts.AddRange(SampleData.GetPosts());
-    if (!db.Profiles.Any()) db.Profiles.Add(SampleData.GetProfile());
-    if (!db.Experiences.Any()) db.Experiences.AddRange(SampleData.GetExperience());
-    if (!db.Educations.Any()) db.Educations.AddRange(SampleData.GetEducation());
-    if (!db.Certifications.Any()) db.Certifications.AddRange(SampleData.GetCertifications());
-    db.SaveChanges();
+    var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
+    await seeder.SeedAsync(reset: false);
 }
 
 app.UseCors("vite");
@@ -226,6 +219,8 @@ app.MapPost("/api/passcode/logout", (HttpResponse res) =>
     return Results.Ok();
 });
 
+
+
 // ===== Admin Auth (server-side session) =====
 
 // Accept any CORS preflight aimed at the API
@@ -298,6 +293,14 @@ app.MapMethods("/api/admin/me", new[] { "GET", "HEAD" }, async (HttpContext http
         roles = http.User.Claims.Where(c => c.Type==ClaimTypes.Role).Select(c => c.Value)
     });
 }).RequireAuthorization();
+
+if (app.Environment.IsDevelopment() ||
+    builder.Configuration.GetValue<bool>("Seed:RunOnStartup"))
+{
+    using var scope = app.Services.CreateScope();
+    var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
+    await seeder.SeedAsync(reset: false);
+}
 
 // ===== Admin: Projects Crud(sample) ===== //
 var admin = app.MapGroup("/api/admin").RequireAuthorization();
