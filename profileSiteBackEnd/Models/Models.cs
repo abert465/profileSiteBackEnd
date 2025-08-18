@@ -4,6 +4,7 @@ namespace profileSiteBackEnd.Models
 {
     public static class SampleData
     {
+        #region <seed data>
         public static Profile GetProfile() => new()
         {
             Name = "Albert Campos",
@@ -226,7 +227,7 @@ namespace profileSiteBackEnd.Models
         new Certification { Name = "Argo Browser‑Based Developer", Issuer = "Argo", Issued = new DateTime(2021, 10, 1), Expires = new DateTime(2022, 11, 1) },
         new Certification { Name = "Software Development Bootcamp", Issuer = "Austin Coding Academy", Issued = new DateTime(2016, 6, 1) }
     };
-
+        #endregion
     }
     public class Profile
     {

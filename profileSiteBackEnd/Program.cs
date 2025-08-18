@@ -29,9 +29,23 @@ var cs = builder.Configuration.GetConnectionString("Default")
 
 builder.Services.AddDbContext<AppDbContext>(o => o.UseSqlite(cs));
 
-builder.Services.AddControllers();
+// Controllers + JSON (camelCase, ignore nulls)
+builder.Services.AddControllers()
+    .AddJsonOptions(o =>
+    {
+        o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 
-//Authentication and Authorization
+// (Also apply to Minimal API responses)
+builder.Services.ConfigureHttpJsonOptions(o =>
+{
+    o.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    o.SerializerOptions.PropertyNameCaseInsensitive = true;
+    o.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+});
+
+//AuthN & AuthZ(cookie)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(o =>
     {
@@ -71,9 +85,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         };
     });
 builder.Services.AddAuthorization();
-builder.Services.AddScoped<DbSeeder>();
 
-//Antiforgery setup
+//Anti-foregery
 builder.Services.AddAntiforgery(o =>
 {
     o.HeaderName = "X-CSRF-TOKEN";
@@ -83,6 +96,10 @@ builder.Services.AddAntiforgery(o =>
     o.Cookie.SameSite = SameSiteMode.Lax;
 });
 
+//Seeder for initial data
+builder.Services.AddScoped<DbSeeder>();
+
+//Swagger + CORS
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -112,37 +129,26 @@ builder.Services.AddRateLimiter(o =>
         }));
 });
 
-//JSON options
-builder.Services.ConfigureHttpJsonOptions(o =>
-{
-    o.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-    o.SerializerOptions.PropertyNameCaseInsensitive = true; // 
-    o.SerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
-});
-
-
-//In-memory store(thread-safe)
-builder.Services.AddSingleton<Store>();
 
 var app = builder.Build();
 
-app.MapControllers();
-
-using (var scope = app.Services.CreateScope())
-{
-    var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
-    await seeder.SeedAsync(reset: false);
-}
-
 app.UseCors("vite");
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseCors("vite");
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+
+//using (var scope = app.Services.CreateScope())
+//{
+//    var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
+//    await seeder.SeedAsync(reset: false);
+//}
+
+
 
 app.Use(async (ctx, next) =>
 {
@@ -155,6 +161,8 @@ app.Use(async (ctx, next) =>
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllers();
 
 //===== Helpers =====
 static void SetXsrfCookie(HttpContext http, IAntiforgery af)
@@ -170,15 +178,38 @@ static void SetXsrfCookie(HttpContext http, IAntiforgery af)
 }
 
 // ===== Public API =====
-app.MapGet("/api/profile", (Store s) => Results.Ok(s.Profile));
-app.MapGet("/api/projects", (Store s) => Results.Ok(s.Projects));
-app.MapGet("/api/experience", (Store s) => Results.Ok(s.Experience));
-app.MapGet("/api/education", (Store s) => Results.Ok(s.Education));
-app.MapGet("/api/certifications", (Store s) => Results.Ok(s.Certifications));
-app.MapGet("api/blog", (Store s) => Results.Ok(s.Posts));
+app.MapGet("/api/profile", async (AppDbContext db) =>
+    await db.Profiles.AsNoTracking()
+    .Include(p => p.Links)
+    .FirstOrDefaultAsync());
+
+app.MapGet("/api/projects", async (AppDbContext db) =>
+    await db.Projects
+    .AsNoTracking()
+    .ToListAsync());
+
+app.MapGet("/api/experience", async (AppDbContext db) =>
+    await db.Experiences.AsNoTracking()
+        .OrderByDescending(e => e.Start)
+        .ToListAsync());
+
+app.MapGet("/api/education", async (AppDbContext db) =>
+    await db.Educations.AsNoTracking()
+        .OrderByDescending(e => e.End)
+        .ToListAsync());
+
+app.MapGet("/api/certifications", async (AppDbContext db) =>
+    await db.Certifications.AsNoTracking()
+        .OrderByDescending(c => c.Issued ?? DateTime.MinValue)
+        .ToListAsync());
+
+app.MapGet("/api/blog", async (AppDbContext db) =>
+    await db.Posts.AsNoTracking()
+        .OrderByDescending(p => p.Published)
+        .ToListAsync());
 
 
-//Contact endpoint
+//Contact (public form)
 app.MapPost("/api/contact", ([FromBody] ContactRequest req) =>
 {
     if (string.IsNullOrWhiteSpace(req.Name) || string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Message))
@@ -189,7 +220,7 @@ app.MapPost("/api/contact", ([FromBody] ContactRequest req) =>
     return Results.Ok(new { ok = true });
 }).RequireRateLimiting("login");
 
-// ===== Passcode Gate =====/
+// ===== Passcode Gate (for private access) =====
 app.MapPost("/api/passcode/login", async (HttpContext http, IAntiforgery af) =>
 {
     var input = await http.Request.ReadFromJsonAsync<PasscodeDto>();
@@ -227,11 +258,11 @@ app.MapPost("/api/passcode/logout", (HttpResponse res) =>
 app.MapMethods("/api/{*path}", new[] { "OPTIONS" }, () => Results.Ok())
    .WithDisplayName("CORS Preflight");
 
-// Admin login endpoint
+// Block accidental GET to /login
 app.MapMethods("/api/admin/login", new[] { "GET", "HEAD" },
     () => Results.StatusCode(StatusCodes.Status405MethodNotAllowed));
 
-// Admin login POST endpoint
+// Login (POST)
 app.MapPost("/api/admin/login", async (HttpContext http, IAntiforgery af) =>
 {
     if (!http.Request.HasJsonContentType())
@@ -294,45 +325,7 @@ app.MapMethods("/api/admin/me", new[] { "GET", "HEAD" }, async (HttpContext http
     });
 }).RequireAuthorization();
 
-if (app.Environment.IsDevelopment() ||
-    builder.Configuration.GetValue<bool>("Seed:RunOnStartup"))
-{
-    using var scope = app.Services.CreateScope();
-    var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
-    await seeder.SeedAsync(reset: false);
-}
-
-// ===== Admin: Projects Crud(sample) ===== //
-var admin = app.MapGroup("/api/admin").RequireAuthorization();
-
 // Admin: Projects CRUD endpoints
-admin.MapGet("/projects", (Store s) => Results.Ok(s.Projects));
-
-/// Admin: Get a single project by slug
-admin.MapPost("/projects", (Store s, Project p) =>
-{
-    p.Slug = string.IsNullOrWhiteSpace(p.Slug) ? Guid.NewGuid().ToString("n") : p.Slug;
-    s.Projects.Insert(0, p);
-    return Results.Ok(p);
-}).AddEndpointFilter(new AntiforgeryFilter());
-
-//
-admin.MapPut("/project", (Store s, string slug, Project p) =>
-{
-    var i = s.Projects.FindIndex(x => x.Slug == slug);
-    if (i < 0) return Results.NotFound();
-    p.Slug = slug;
-    s.Projects[i] = p;
-    return Results.Ok(p);
-}).AddEndpointFilter(new AntiforgeryFilter());
-
-//
-admin.MapDelete("/projects/{slug}", (Store s, string slug) =>
-{
-    s.Projects.RemoveAll(x => x.Slug == slug);
-    return Results.NoContent();
-}).AddEndpointFilter(new AntiforgeryFilter());
-
 #region <Resume import api endpoint>
 // Import endpoint to update in-memory data from JSON (for quick resume-driven updates)
 //app.MapPost("/api/import", ([FromBody] ResumeImport import) =>
@@ -348,39 +341,19 @@ admin.MapDelete("/projects/{slug}", (Store s, string slug) =>
 #endregion
 
 app.Run();
-//Minimal anti-forgery filter for non-GETs
-class AntiforgeryFilter : IEndpointFilter
-{
-    public async ValueTask<object> InvokeAsync(EndpointFilterInvocationContext ctx, EndpointFilterDelegate next)
-    {
-        var req = ctx.HttpContext.Request;
-        if (HttpMethods.IsGet(req.Method) || HttpMethods.IsHead(req.Method) || HttpMethods.IsOptions(req.Method))
-            return next(ctx);
-        var af = ctx.HttpContext.RequestServices.GetRequiredService<IAntiforgery>();
-        await af.ValidateRequestAsync(ctx.HttpContext);
-        return await next(ctx);
-    }
-}
-
-class Store
-{
-    public Profile Profile { get; } = SampleData.GetProfile();
-    public List<Project> Projects { get; } = SampleData.GetProjects();
-    public List<Post> Posts { get; } = SampleData.GetPosts();
-    public List<Experience> Experience { get; } = SampleData.GetExperience();
-    public List<Education> Education { get; } = SampleData.GetEducation();
-    public List<Certification> Certifications { get; } = SampleData.GetCertifications();
-}
 
 // ===== DTOs & Store =====
 record LoginDto(string? Username, string? Password);
 record PasscodeDto(string? Code);
 record ContactRequest(string Name, string Email, string? Subject, string Message);
-public record ResumeImport(
-    Profile? Profile,
-    List<Project>? Projects,
-    List<Post>? Posts,
-    List<Experience>? Experience,
-    List<Education>? Education,
-    List<Certification>? Certifications
-);
+
+#region <Resume import DTO>
+//public record ResumeImport(
+//    Profile? Profile,
+//    List<Project>? Projects,
+//    List<Post>? Posts,
+//    List<Experience>? Experience,
+//    List<Education>? Education,
+//    List<Certification>? Certifications
+//);
+#endregion

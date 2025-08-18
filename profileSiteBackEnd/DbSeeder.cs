@@ -45,6 +45,7 @@ public class DbSeeder
 
         // ---- Profile (single row + owned Links + Skills list) ----
         var seedProfile = SampleData.GetProfile();
+        
         var curProfile = await _db.Profiles
             .Include(p => p.Links)
             .FirstOrDefaultAsync(ct);
