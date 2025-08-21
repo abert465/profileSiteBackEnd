@@ -24,6 +24,8 @@ public class DbSeeder
 
         if (reset)
         {
+            // Order matters if cascade isn’t guaranteed everywhere
+            _db.Skills.RemoveRange(_db.Skills);
             _db.Projects.RemoveRange(_db.Projects);
             _db.Posts.RemoveRange(_db.Posts);
             _db.Experiences.RemoveRange(_db.Experiences);
@@ -40,21 +42,22 @@ public class DbSeeder
             ["experience"]=0,
             ["education"]=0,
             ["certifications"]=0,
-            ["profile"]=0
+            ["profile"]=0,
+            ["skills"]=0
         };
 
-        // ---- Profile (single row + owned Links + Skills list) ----
+        // ---- Profile (single row + owned Links) ----
         var seedProfile = SampleData.GetProfile();
-        
+
         var curProfile = await _db.Profiles
             .Include(p => p.Links)
             .FirstOrDefaultAsync(ct);
 
         if (curProfile is null)
         {
-            // New profile; EF will also persist owned Links
-            _db.Profiles.Add(seedProfile);
+            _db.Profiles.Add(seedProfile); // owned Links will be saved too
             added["profile"]++;
+            await _db.SaveChangesAsync(ct); // need PK for Skills FK
         }
         else
         {
@@ -68,13 +71,50 @@ public class DbSeeder
             curProfile.Github   = seedProfile.Github;
             curProfile.Linkedin = seedProfile.Linkedin;
 
-            // Replace lists
-            curProfile.Skills = new List<string>(seedProfile.Skills);
-
             // Replace owned Links (clear & re-add)
             curProfile.Links.Clear();
             foreach (var l in seedProfile.Links)
                 curProfile.Links.Add(new Link { Label = l.Label, Url = l.Url });
+
+            await _db.SaveChangesAsync(ct); // ensure persisted before Skills upsert
+        }
+
+        // Resolve Profile PK (shadow key "Id" on Profile)
+        var profileId = await _db.Profiles
+            .Select(p => EF.Property<int>(p, "Id"))
+            .FirstAsync(ct);
+
+        // ---- Skills (table) ----
+        // Use SampleData profile’s Skills list as initial set (visible, ordered by index)
+        var initialSkills = seedProfile.Skills ?? new List<string>();
+        Console.WriteLine($"[SEED] Initial skills in SampleData: {initialSkills.Count}");
+
+        var existingSkills = await _db.Skills
+            .Where(s => s.ProfileId == profileId)
+            .ToListAsync(ct);
+
+        var byName = existingSkills.ToDictionary(s => s.Name, s => s);
+        for (int i = 0; i < initialSkills.Count; i++)
+        {
+            var name = (initialSkills[i] ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(name)) continue;
+
+            if (!byName.TryGetValue(name, out var row))
+            {
+                _db.Skills.Add(new Skill
+                {
+                    ProfileId = profileId,
+                    Name = name,
+                    IsVisible = true,
+                    Order = i
+                });
+                added["skills"]++;
+            }
+            else
+            {
+                // keep admin visibility; just align order
+                if (row.Order != i) row.Order = i;
+            }
         }
 
         // ---- Projects (keyed by Slug) ----
@@ -103,20 +143,19 @@ public class DbSeeder
             var existing = await _db.Posts.FindAsync([p.Slug], ct);
             if (existing is null)
             {
-                // Ensure a Published value
                 if (p.Published == default) p.Published = DateTime.UtcNow;
                 _db.Posts.Add(p);
                 added["posts"]++;
             }
             else
             {
-                existing.Title    = p.Title;
-                existing.Excerpt  = p.Excerpt;
+                existing.Title     = p.Title;
+                existing.Excerpt   = p.Excerpt;
                 existing.Published = (p.Published == default) ? existing.Published : p.Published;
             }
         }
 
-        // Natural keys for upserts (so we don’t create duplicates)
+        // Natural keys for upserts (avoid dup rows)
         string ExpKey(Experience e) => $"{e.Company}|{e.Role}|{e.Start:yyyy-MM-dd}";
         string EduKey(Education e) => $"{e.School}|{e.Degree}|{e.End:yyyy-MM-dd}";
         string CertKey(Certification c) => $"{c.Name}|{c.Issuer}|{(c.Issued?.ToString("yyyy-MM-dd") ?? "null")}";
@@ -170,10 +209,10 @@ public class DbSeeder
         {
             if (certIndex.TryGetValue(CertKey(c), out var row))
             {
-                row.Name   = c.Name;
-                row.Issuer = c.Issuer;
-                row.Issued = c.Issued;
-                row.Expires= c.Expires;
+                row.Name    = c.Name;
+                row.Issuer  = c.Issuer;
+                row.Issued  = c.Issued;
+                row.Expires = c.Expires;
             }
             else
             {

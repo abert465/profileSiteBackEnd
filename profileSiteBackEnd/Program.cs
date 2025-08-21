@@ -179,9 +179,39 @@ static void SetXsrfCookie(HttpContext http, IAntiforgery af)
 
 // ===== Public API =====
 app.MapGet("/api/profile", async (AppDbContext db) =>
-    await db.Profiles.AsNoTracking()
-    .Include(p => p.Links)
-    .FirstOrDefaultAsync());
+//await db.Profiles.AsNoTracking()
+//.Include(p => p.Links)
+//.FirstOrDefaultAsync());
+{
+    var p = await db.Profiles.AsNoTracking()
+        .Include(x => x.Links)
+        .FirstOrDefaultAsync();
+
+    if (p is null) return Results.NotFound();
+
+    var skills = await db.Skills.AsNoTracking()
+        .Where(s => s.ProfileId == p.Id && s.IsVisible)
+        .OrderBy(s => s.Order ?? int.MaxValue)
+        .ThenBy(s => s.Name)
+        .Select(s => s.Name)
+        .ToListAsync();
+
+    // Project to the shape your React expects (camelCase already configured)
+    return Results.Ok(new
+    {
+        id = p.Id,
+        name = p.Name,
+        title = p.Title,
+        tagline = p.Tagline,
+        summary = p.Summary,
+        location = p.Location,
+        email = p.Email,
+        github = p.Github,
+        linkedin = p.Linkedin,
+        skills,
+        links = p.Links
+    });
+});
 
 app.MapGet("/api/projects", async (AppDbContext db) =>
     await db.Projects
@@ -220,110 +250,78 @@ app.MapPost("/api/contact", ([FromBody] ContactRequest req) =>
     return Results.Ok(new { ok = true });
 }).RequireRateLimiting("login");
 
-// ===== Passcode Gate (for private access) =====
-app.MapPost("/api/passcode/login", async (HttpContext http, IAntiforgery af) =>
-{
-    var input = await http.Request.ReadFromJsonAsync<PasscodeDto>();
-    if (input is null || string.IsNullOrWhiteSpace(passcodeHash)) return Results.Unauthorized();
-    if (!BCrypt.Net.BCrypt.Verify(input.Code ?? string.Empty, passcodeHash)) return Results.Unauthorized();
-
-    http.Response.Cookies.Append("case_access", "1", new CookieOptions
-    {
-        HttpOnly = true,
-        Secure = true,
-        SameSite = SameSiteMode.Lax,
-        Expires = DateTimeOffset.UtcNow.AddHours(12)
-    });
-
-    SetXsrfCookie(http, af);
-    return Results.Ok(new { ok = true });
-}).RequireRateLimiting("login");
-
-// Check passcode cookie
-app.MapGet("/api/passcode/check", (HttpRequest req) =>
-    req.Cookies.ContainsKey("case_access") ? Results.Ok(new { ok = true }) : Results.Unauthorized());
-
-// Logout passcode cookie
-app.MapPost("/api/passcode/logout", (HttpResponse res) =>
-{
-    res.Cookies.Delete("case_access");
-    return Results.Ok();
-});
-
-
-
 // ===== Admin Auth (server-side session) =====
 
 // Accept any CORS preflight aimed at the API
 app.MapMethods("/api/{*path}", new[] { "OPTIONS" }, () => Results.Ok())
    .WithDisplayName("CORS Preflight");
 
-// Block accidental GET to /login
+//Block accidental GET to /login
 app.MapMethods("/api/admin/login", new[] { "GET", "HEAD" },
-    () => Results.StatusCode(StatusCodes.Status405MethodNotAllowed));
+   () => Results.StatusCode(StatusCodes.Status405MethodNotAllowed));
 
-// Login (POST)
-app.MapPost("/api/admin/login", async (HttpContext http, IAntiforgery af) =>
-{
-    if (!http.Request.HasJsonContentType())
-        return Results.BadRequest(new { error = "Expected application/json" });
+//// Login (POST)
+//app.MapPost("/api/admin/login", async (HttpContext http, IAntiforgery af) =>
+//{
+//    if (!http.Request.HasJsonContentType())
+//        return Results.BadRequest(new { error = "Expected application/json" });
 
-    var dto = await http.Request.ReadFromJsonAsync<LoginDto>(cancellationToken: http.RequestAborted);
-    if (dto is null) return Results.BadRequest(new { error = "Invalid payload" });
+//    var dto = await http.Request.ReadFromJsonAsync<LoginDto>(cancellationToken: http.RequestAborted);
+//    if (dto is null) return Results.BadRequest(new { error = "Invalid payload" });
 
-    bool passwordOk = false;
+//    bool passwordOk = false;
 
-    if (!string.IsNullOrWhiteSpace(adminHash))
-    {
-        // If the configured hash is malformed, BCrypt.Verify can throw → catch and treat as invalid
-        try { passwordOk = BCrypt.Net.BCrypt.Verify(dto.Password ?? string.Empty, adminHash); }
-        catch
-        {
-            // Optional: log the error so you know the hash is bad, but don't 500 the client
-            Console.WriteLine("[ADMIN] Invalid Admin:PasswordHash format; treating as invalid credentials.");
-            passwordOk = false;
-        }
-    }
-    else
-    {
-        // Dev fallback only when no hash configured
-        passwordOk = app.Environment.IsDevelopment() && (dto.Password == "test123");
-    }
+//    if (!string.IsNullOrWhiteSpace(adminHash))
+//    {
+//        // If the configured hash is malformed, BCrypt.Verify can throw → catch and treat as invalid
+//        try { passwordOk = BCrypt.Net.BCrypt.Verify(dto.Password ?? string.Empty, adminHash); }
+//        catch
+//        {
+//            // Optional: log the error so you know the hash is bad, but don't 500 the client
+//            Console.WriteLine("[ADMIN] Invalid Admin:PasswordHash format; treating as invalid credentials.");
+//            passwordOk = false;
+//        }
+//    }
+//    else
+//    {
+//        // Dev fallback only when no hash configured
+//        passwordOk = app.Environment.IsDevelopment() && (dto.Password == "test123");
+//    }
 
-    if (!string.Equals(dto.Username, adminUser, StringComparison.Ordinal) || !passwordOk)
-        return Results.Unauthorized();
+//    if (!string.Equals(dto.Username, adminUser, StringComparison.Ordinal) || !passwordOk)
+//        return Results.Unauthorized();
 
-    var claims = new List<Claim> {
-        new(ClaimTypes.Name, adminUser),
-        new(ClaimTypes.Role, "Admin")
-    };
-    var id = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-    var principal = new ClaimsPrincipal(id);
-    await http.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+//    var claims = new List<Claim> {
+//        new(ClaimTypes.Name, adminUser),
+//        new(ClaimTypes.Role, "Admin")
+//    };
+//    var id = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+//    var principal = new ClaimsPrincipal(id);
+//    await http.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-    // Issue CSRF cookie for subsequent POST/PUT/DELETE
-    SetXsrfCookie(http, af);
-    return Results.Ok(new { user = adminUser });
-}).RequireRateLimiting("login");
+//    // Issue CSRF cookie for subsequent POST/PUT/DELETE
+//    SetXsrfCookie(http, af);
+//    return Results.Ok(new { user = adminUser });
+//}).RequireRateLimiting("login");
 
-// Admin logout endpoint
-app.MapPost("/api/admin/logout", async (HttpContext http) =>
-{
-    await http.SignOutAsync();
-    return Results.Ok();
-});
+//// Admin logout endpoint
+//app.MapPost("/api/admin/logout", async (HttpContext http) =>
+//{
+//    await http.SignOutAsync();
+//    return Results.Ok();
+//});
 
-// Admin: Get current user info
-app.MapMethods("/api/admin/me", new[] { "GET", "HEAD" }, async (HttpContext http, IAntiforgery af) =>
-{
-    if (!http.User.Identity?.IsAuthenticated ?? true) return Results.Unauthorized();
-    SetXsrfCookie(http, af);
-    return Results.Ok(new
-    {
-        user = http.User.Identity!.Name,
-        roles = http.User.Claims.Where(c => c.Type==ClaimTypes.Role).Select(c => c.Value)
-    });
-}).RequireAuthorization();
+//// Admin: Get current user info
+//app.MapMethods("/api/admin/me", new[] { "GET", "HEAD" }, async (HttpContext http, IAntiforgery af) =>
+//{
+//    if (!http.User.Identity?.IsAuthenticated ?? true) return Results.Unauthorized();
+//    SetXsrfCookie(http, af);
+//    return Results.Ok(new
+//    {
+//        user = http.User.Identity!.Name,
+//        roles = http.User.Claims.Where(c => c.Type==ClaimTypes.Role).Select(c => c.Value)
+//    });
+//}).RequireAuthorization();
 
 // Admin: Projects CRUD endpoints
 #region <Resume import api endpoint>

@@ -2,9 +2,14 @@ import { Link, Outlet, useLocation } from 'react-router-dom'
 
 export default function AdminLayout(){
   const items = [
-    ['Dashboard','/admin'],
-    ['Projects','/admin/projects']
-    // add Blog, Experience, etc.
+  ['Dashboard','/admin'],
+  // ['Profile','/admin/profile'],
+  ['Projects','/admin/projects'],
+  // ['Experience','/admin/experience'],
+  // ['Education','/admin/education'],
+  // ['Certifications','/admin/certifications'],
+  // ['Posts','/admin/posts'],
+  ['Skills','/admin/skills'],
   ]
   const { pathname } = useLocation()
   return (

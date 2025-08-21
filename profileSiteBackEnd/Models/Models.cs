@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace profileSiteBackEnd.Models
 {
@@ -240,6 +242,8 @@ namespace profileSiteBackEnd.Models
         public string? Email { get; set; }
         public string? Github { get; set; }
         public string? Linkedin { get; set; }
+        [NotMapped]
+        [JsonIgnore]
         public List<string> Skills { get; set; } = new();
         public List<Link> Links { get; set; } = new();
     }
@@ -296,6 +300,17 @@ namespace profileSiteBackEnd.Models
         public string? Issuer { get; set; }
         public DateTime? Issued { get; set; }
         public DateTime? Expires { get; set; }
+    }
+
+    public class  Skill
+    {
+        public int Id { get; set; } // Auto-incremented primary key 
+        public string Name { get; set; } = string.Empty;
+        public bool IsVisible { get; set; } = true; // Default to visible
+        public int? Order { get; set; } // Default order for sorting
+
+        public int ProfileId { get; set; } // Foreign key to Profile
+        public Profile? Profile { get; set; } = null; // Navigation property
     }
 
 }

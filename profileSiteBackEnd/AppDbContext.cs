@@ -16,6 +16,7 @@ namespace profileSiteBackEnd
         public DbSet<Education> Educations => Set<Education>();
         public DbSet<Certification> Certifications => Set<Certification>();
         public DbSet<Profile> Profiles => Set<Profile>();
+        public DbSet<Skill> Skills => Set<Skill>();
 
         protected override void OnModelCreating(ModelBuilder b)
         {
@@ -35,6 +36,8 @@ namespace profileSiteBackEnd
 
             b.Entity<Certification>().Property<int>("Id").ValueGeneratedOnAdd();
             b.Entity<Certification>().HasKey("Id");
+
+            b.Entity<Profile>().Ignore(p => p.Skills);
 
             b.Entity<Profile>().OwnsMany(p => p.Links, nav =>
             {
@@ -60,6 +63,21 @@ namespace profileSiteBackEnd
 
             // Single row Profile convenience
             b.Entity<Profile>().Property<int>("Id").HasDefaultValue(1);
+
+            b.Entity<Skill>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Name).HasMaxLength(100).IsRequired();
+                e.Property(x => x.IsVisible).HasDefaultValue(true);
+                e.Property(x => x.Order);
+                e.HasIndex(x => new { x.ProfileId, x.Name }).IsUnique();
+
+                e.HasOne(x => x.Profile)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProfileId)
+                    .HasPrincipalKey("Id")
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
         }
     }
 }

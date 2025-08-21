@@ -14,13 +14,13 @@ const handle = async (res) => {
         return res.status === 204 ? null : res.json()
 }
 
-export const me = () => fetch(`${prefix}/api/admin/me`, { credentials:'include' }).then(handle)
+export const me = () => fetch(`${prefix}/api/admin/auth/me`, { credentials:'include' }).then(handle)
 
-export const login = (username, password) => fetch(`${prefix}/api/admin/login`, {
+export const login = (username, password) => fetch(`${prefix}/api/admin/auth/login`, {
   method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username, password })
 }).then(handle)
 
-export const logout = () => fetch(`${prefix}/api/admin/logout`, { method:'POST', credentials:'include' }).then(handle)
+export const logout = () => fetch(`${prefix}/api/admin/auth/logout`, { method:'POST', credentials:'include' }).then(handle)
 
 // Projects (admin)
 export const listProjects = () => fetch(`${prefix}/api/admin/projects`, { credentials:'include' }).then(handle)
@@ -36,3 +36,26 @@ export const updateProject = (slug, p) => fetch(`${prefix}/api/admin/projects/${
 export const deleteProject = (slug) => fetch(`${prefix}/api/admin/projects/${encodeURIComponent(slug)}`, {
   method:'DELETE', credentials:'include', headers:{ ...csrfHeader() }
 }).then(handle)
+
+export const listSkillsAdmin = () =>
+  fetch(`${prefix}/api/admin/skills`, { credentials:'include' }).then(handle)
+
+export const addSkillAdmin = (name, isVisible = true, order = null) =>
+  fetch(`${prefix}/api/admin/skills`, {
+    method:'POST', credentials:'include',
+    headers:{ 'Content-Type':'application/json', ...csrf() },
+    body: JSON.stringify({ name, isVisible, order })
+  }).then(handle)
+
+export const updateSkillAdmin = (id, patch) =>
+  fetch(`${prefix}/api/admin/skills/${id}`, {
+    method:'PUT', credentials:'include',
+    headers:{ 'Content-Type':'application/json', ...csrf() },
+    body: JSON.stringify(patch)
+  }).then(handle)
+
+export const deleteSkillAdmin = (id) =>
+  fetch(`${prefix}/api/admin/skills/${id}`, {
+    method:'DELETE', credentials:'include',
+    headers:{ ...csrf() }
+  }).then(handle)
