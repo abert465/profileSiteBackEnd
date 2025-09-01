@@ -5,7 +5,7 @@ export default function AdminLayout(){
   ['Dashboard','/admin'],
   // ['Profile','/admin/profile'],
   ['Projects','/admin/projects'],
-  // ['Experience','/admin/experience'],
+  ['Experience','/admin/experience'],
   // ['Education','/admin/education'],
   // ['Certifications','/admin/certifications'],
   // ['Posts','/admin/posts'],

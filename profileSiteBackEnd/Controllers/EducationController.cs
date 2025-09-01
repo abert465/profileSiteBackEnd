@@ -26,7 +26,7 @@ namespace profileSiteBackEnd.Controllers
             _db.Educations.OrderByDescending(e => e.End).ToListAsync();
 
         [HttpPost]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Create([FromBody] Education e)
         {
             _db.Educations.Add(e);
@@ -35,7 +35,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpPut("{i:int}")]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> UpdateByIndex(int i, [FromBody] Education e)
         {
             var ordered = await _db.Educations.OrderByDescending(x => x.End).ToListAsync();
@@ -55,7 +55,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpDelete("{i:int}")]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> DeleteByIndex(int i)
         {
             var ordered = await _db.Educations.OrderByDescending(x => x.End).ToListAsync();

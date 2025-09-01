@@ -7,7 +7,11 @@ import Login from '/src/admin/Login'
 import Dashboard from '/src/dashboard/Dashboard.jsx'
 import ProjectsList from '/src/admin/projects/ProjectsList.jsx'
 import ProjectForm from '/src/admin/projects/ProjectForm.jsx'
-import SkillsList from '/src/admin/Skills/SkillList.jsx'
+import SkillsList from '/src/admin/skills/SkillList.jsx'
+import ExperienceList from '/src/admin/experience/ExperienceList.jsx'
+import ExperienceForm from '/src/admin/experience/ExperienceForm.jsx'
+import ExperienceEdit from '/src/admin/experience/ExperienceEdit.jsx'
+
 
 export default function AdminApp(){
   const [authed, setAuthed] = useState(null) // null = checking, false = not authed, true = authed
@@ -32,8 +36,12 @@ export default function AdminApp(){
           <Route path="projects/new" element={<ProjectForm/>} />
           {/* /admin/projects/:slug */}
           <Route path="projects/:slug" element={<ProjectForm/>} />
+          {/* /admin/experience */}
+          <Route path="experience" element={<ExperienceList />} />
+          <Route path="experience/new" element={<ExperienceForm />} />
+          <Route path="experience/:index" element={<ExperienceEdit />} />
           {/* /admin/skills */}
-          <Route path="/admin/skills" element={<SkillsList/>} />
+          <Route path="skills" element={<SkillsList/>} />
         </Route>
       </Route>
     </Routes>

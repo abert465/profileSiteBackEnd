@@ -2,6 +2,9 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 
 export default function Hero({ profile }) {
+
+  const imgSrc = profile?.photoURL || '/images/profile.webp'
+
   return (
     <section id="home" className="relative">
       <div className="max-w-6xl mx-auto px-4 py-20 grid md:grid-cols-2 gap-10 items-center">
@@ -25,11 +28,14 @@ export default function Hero({ profile }) {
             <span className="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20">Azure DevOps</span>
           </div>
         </motion.div>
+
+        {/* Right: image panel (was empty)*/}
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.1 }} className="relative h-64 md:h-80">
-          <div className="absolute inset-0 rounded-3xl gradient-border p-[1px]">
-            <div className="absolute inset-0 rounded-3xl bg-white/80 backdrop-blur shadow-lg dark:bg-gray-900/70" />
+          <div className=" absolute inset-0 rounded-3xl  w-[26rem] md:w-[32rem] lg:w-[38rem] aspect-[300/200] bg-gradient-to-br from-indigo-500/20 via-fuchsia-500/10 to-slate-800/20 p-6">
+            <div className="absolute inset-0 rounded-3xl overflow-hidden ring-1 ring-black/5 dark:ring-white/10 shadow-lg" />
+            <img src={imgSrc} alt={profile?.name ? `${profile.name} portrait` : 'Profile photo'} loading='eager' fetchPriority='high' className="block h-full w-full object-cover rounded-3xl" />
           </div>
-          <div className="absolute inset-0 rounded-3xl ring-1 ring-black/5 dark:ring-white/10" />
+          <div className="pointer-events-none absolute inset-0 bg-black/0" />
         </motion.div>
       </div>
     </section>

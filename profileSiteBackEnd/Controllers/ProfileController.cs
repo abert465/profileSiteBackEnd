@@ -26,7 +26,7 @@ namespace profileSiteBackEnd.Controllers
       _db.Profiles.Include(p => p.Links).FirstOrDefaultAsync();
 
         [HttpPut]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Put([FromBody] Profile p)
         {
             var cur = await _db.Profiles.Include(x => x.Links).FirstOrDefaultAsync();

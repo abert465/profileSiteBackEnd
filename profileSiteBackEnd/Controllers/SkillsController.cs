@@ -39,7 +39,7 @@ namespace profileSiteBackEnd.Controllers
         public record UpsertSkillDto(string Name, bool? IsVisible, int? Order);
 
         [HttpPost]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Create([FromBody] UpsertSkillDto dto)
         {
             var pid = await GetProfileIdAsync();
@@ -58,7 +58,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpPut("{id:int}")]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        //[ServiceFilter(typeof(profileSiteBackEnd.Services.ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Update(int id, [FromBody] UpsertSkillDto dto)
         {
             var row = await _db.Skills.FindAsync(id);
@@ -83,7 +83,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Delete(int id)
         {
             var row = await _db.Skills.FindAsync(id);

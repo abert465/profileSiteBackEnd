@@ -22,7 +22,7 @@ namespace profileSiteBackEnd.Controllers
                .ToListAsync();
 
         [HttpPost]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Create([FromBody] Certification c)
         {
             _db.Certifications.Add(c);
@@ -31,7 +31,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpPut("{i:int}")]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> UpdateByIndex(int i, [FromBody] Certification c)
         {
             var ordered = await _db.Certifications
@@ -52,7 +52,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpDelete("{i:int}")]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> DeleteByIndex(int i)
         {
             var ordered = await _db.Certifications

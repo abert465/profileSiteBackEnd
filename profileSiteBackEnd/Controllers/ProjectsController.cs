@@ -25,7 +25,7 @@ namespace profileSiteBackEnd.Controllers
        _db.Projects.OrderBy(p => p.Title).ToListAsync();
 
         [HttpPost]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Create([FromBody] Project p)
         {
             p.Slug = string.IsNullOrWhiteSpace(p.Slug) ? Guid.NewGuid().ToString("n") : p.Slug;
@@ -36,7 +36,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpPut("{slug}")]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Update(string slug, [FromBody] Project p)
         {
             var row = await _db.Projects.FindAsync(slug);
@@ -49,7 +49,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpDelete("{slug}")]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Delete(string slug)
         {
             var row = await _db.Projects.FindAsync(slug);
