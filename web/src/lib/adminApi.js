@@ -62,6 +62,24 @@ export const deleteProject = (slug) =>
     headers: { ...csrfHeader() },
   }).then(handle);
 
+export const uploadProjectImage = (slug, imageFile) => {
+  const formData = new FormData();
+  formData.append("image", imageFile);
+  return fetch(`${prefix}/api/admin/projects/${encodeURIComponent(slug)}/image`, {
+    method: "POST",
+    credentials: "include",
+    headers: { ...csrfHeader() },
+    body: formData,
+  }).then(handle);
+};
+
+export const deleteProjectImage = (slug) =>
+  fetch(`${prefix}/api/admin/projects/${encodeURIComponent(slug)}/image`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: { ...csrfHeader() },
+  }).then(handle);
+
 export const listSkillsAdmin = () =>
   fetch(`${prefix}/api/admin/skills`, { credentials: "include" }).then(handle);
 
@@ -115,6 +133,25 @@ export const updateExperienceAdminByIndex = (i, payload) =>
 // DELETE *by index* (i), not by id
 export const deleteExperienceAdminByIndex = (i) =>
   fetch(`${prefix}/api/admin/experience/${i}`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: { ...csrfHeader() },
+  }).then(handle);
+
+// Project image upload
+export const uploadProjectImage = (slug, imageFile) => {
+  const formData = new FormData();
+  formData.append("image", imageFile);
+  return fetch(`${prefix}/api/admin/projects/${encodeURIComponent(slug)}/image`, {
+    method: "POST",
+    credentials: "include",
+    headers: { ...csrfHeader() },
+    body: formData,
+  }).then(handle);
+};
+
+export const deleteProjectImage = (slug) =>
+  fetch(`${prefix}/api/admin/projects/${encodeURIComponent(slug)}/image`, {
     method: "DELETE",
     credentials: "include",
     headers: { ...csrfHeader() },

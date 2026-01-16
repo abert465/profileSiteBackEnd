@@ -263,6 +263,7 @@ namespace profileSiteBackEnd.Models
         public string? RepoUrl { get; set; }
         public string? LiveUrl { get; set; }
         public List<string> Highlights { get; set; } = new();
+        public string? ImageUrl { get; set; }
     }
 
     public class Post
