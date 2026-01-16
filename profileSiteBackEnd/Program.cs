@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using profileSiteBackEnd;
+using profileSiteBackEnd.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,9 @@ var cs = builder.Configuration.GetConnectionString("Default")
          ?? "Data Source=app.db";
 
 builder.Services.AddDbContext<AppDbContext>(o => o.UseSqlite(cs));
+
+// Add Email Service
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Controllers + JSON (camelCase, ignore nulls)
 builder.Services.AddControllers()
@@ -103,7 +107,6 @@ builder.Services.AddScoped<DbSeeder>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
 //CORS for local dev
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:5173" };
 
@@ -116,9 +119,18 @@ builder.Services.AddCors(o =>
     .AllowCredentials());
 });
 
-//Rate limiting for login endpoint
+//Rate limiting for contact form (prevent spam)
 builder.Services.AddRateLimiter(o =>
 {
+    o.AddPolicy("contact", http => RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: http.Connection.RemoteIpAddress?.ToString() ?? "anon",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            AutoReplenishment = true,
+            PermitLimit = 3, // 3 emails per hour per IP
+            Window = TimeSpan.FromHours(1)
+        }));
+        
     o.AddPolicy("login", http => RateLimitPartition.GetFixedWindowLimiter(
         partitionKey: http.Connection.RemoteIpAddress?.ToString() ?? "anon",
         factory: _ => new FixedWindowRateLimiterOptions
@@ -140,7 +152,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 
 //using (var scope = app.Services.CreateScope())
 //{
@@ -239,16 +250,43 @@ app.MapGet("/api/blog", async (AppDbContext db) =>
         .ToListAsync());
 
 
-//Contact (public form)
-app.MapPost("/api/contact", ([FromBody] ContactRequest req) =>
+//Contact form - Direct email sending
+app.MapPost("/api/contact", async (IEmailService emailService, [FromBody] ContactRequest req) =>
 {
+    // Validation
     if (string.IsNullOrWhiteSpace(req.Name) || string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Message))
         return Results.BadRequest(new { error = "Name, email, and message are required." });
 
-    // TODO: plug in email (SMTP) or queue here. For now we log.
-    Console.WriteLine($"[CONTACT] {DateTime.UtcNow:o} | {req.Name} <{req.Email}> | {req.Message}");
-    return Results.Ok(new { ok = true });
-}).RequireRateLimiting("login");
+    // Additional validation
+    if (req.Name.Length > 100)
+        return Results.BadRequest(new { error = "Name is too long (max 100 characters)." });
+    
+    if (req.Message.Length > 2000)
+        return Results.BadRequest(new { error = "Message is too long (max 2000 characters)." });
+
+    // Basic email format validation
+    if (!System.Text.RegularExpressions.Regex.IsMatch(req.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+        return Results.BadRequest(new { error = "Please provide a valid email address." });
+
+    // Send email directly
+    var success = await emailService.SendContactEmailAsync(req.Name, req.Email, req.Subject, req.Message);
+    
+    if (success)
+    {
+        return Results.Ok(new { 
+            ok = true, 
+            message = "Thank you for your message! I'll get back to you soon." 
+        });
+    }
+    else
+    {
+        return Results.Problem(
+            title: "Email Service Error",
+            detail: "Unable to send your message at this time. Please try again later.",
+            statusCode: 500
+        );
+    }
+}).RequireRateLimiting("contact");
 
 // ===== Admin Auth (server-side session) =====
 
