@@ -33,6 +33,9 @@ builder.Services.AddDbContext<AppDbContext>(o => o.UseSqlite(cs));
 // Add Email Service
 builder.Services.AddScoped<IEmailService, EmailService>();
 
+// Add Image Service
+builder.Services.AddScoped<IImageService, ImageService>();
+
 // Controllers + JSON (camelCase, ignore nulls)
 builder.Services.AddControllers()
     .AddJsonOptions(o =>
@@ -104,8 +107,9 @@ builder.Services.AddAntiforgery(o =>
 builder.Services.AddScoped<DbSeeder>();
 
 //Swagger + CORS
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Swagger disabled due to file upload endpoint compatibility issues
+// builder.Services.AddEndpointsApiExplorer();
+// builder.Services.AddSwaggerGen();
 
 //CORS for local dev
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:5173" };
@@ -149,8 +153,9 @@ app.UseCors("vite");
 if (app.Environment.IsDevelopment())
 {
     app.UseCors("vite");
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Swagger disabled due to file upload endpoint compatibility issues
+    // app.UseSwagger();
+    // app.UseSwaggerUI();
 }
 
 //using (var scope = app.Services.CreateScope())
@@ -170,6 +175,7 @@ app.Use(async (ctx, next) =>
 });
 
 app.UseRateLimiter();
+app.UseStaticFiles(); // Serve static files from wwwroot
 app.UseAuthentication();
 app.UseAuthorization();
 
