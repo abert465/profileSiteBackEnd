@@ -26,7 +26,7 @@ namespace profileSiteBackEnd.Controllers
             _db.Experiences.OrderByDescending(e => e.Start).ToListAsync();
 
         [HttpPost]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+       // [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Create([FromBody] Experience e)
         {
             _db.Experiences.Add(e);
@@ -35,7 +35,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpPut("{i:int}")]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+       // [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> UpdateByIndex(int i, [FromBody] Experience e)
         {
             var ordered = await _db.Experiences.OrderByDescending(x => x.Start).ToListAsync();
@@ -51,7 +51,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpDelete("{i:int}")]
-        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+       // [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> DeleteByIndex(int i)
         {
             var ordered = await _db.Experiences.OrderByDescending(x => x.Start).ToListAsync();
