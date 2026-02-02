@@ -24,13 +24,14 @@ public class DbSeeder
 
         if (reset)
         {
-            // Order matters if cascade isn’t guaranteed everywhere
+            // Order matters if cascade isn't guaranteed everywhere
             _db.Skills.RemoveRange(_db.Skills);
             _db.Projects.RemoveRange(_db.Projects);
             _db.Posts.RemoveRange(_db.Posts);
             _db.Experiences.RemoveRange(_db.Experiences);
             _db.Educations.RemoveRange(_db.Educations);
             _db.Certifications.RemoveRange(_db.Certifications);
+            _db.Testimonials.RemoveRange(_db.Testimonials);
             _db.Profiles.RemoveRange(_db.Profiles);
             await _db.SaveChangesAsync(ct);
         }
@@ -42,6 +43,7 @@ public class DbSeeder
             ["experience"]=0,
             ["education"]=0,
             ["certifications"]=0,
+            ["testimonials"]=0,
             ["profile"]=0,
             ["skills"]=0
         };
@@ -218,6 +220,30 @@ public class DbSeeder
             {
                 _db.Certifications.Add(c);
                 added["certifications"]++;
+            }
+        }
+
+        // ---- Testimonials ----
+        string TestKey(Testimonial t) => $"{t.Name}|{t.Company}|{(t.Date?.ToString("yyyy-MM-dd") ?? "null")}";
+        var testAll = await _db.Testimonials.ToListAsync(ct);
+        var testIndex = testAll.ToDictionary(TestKey, t => t);
+        foreach (var t in SampleData.GetTestimonials())
+        {
+            if (testIndex.TryGetValue(TestKey(t), out var row))
+            {
+                row.Name      = t.Name;
+                row.Title     = t.Title;
+                row.Company   = t.Company;
+                row.Content   = t.Content;
+                row.Date      = t.Date;
+                row.Rating    = t.Rating;
+                row.IsVisible = t.IsVisible;
+                row.Order     = t.Order;
+            }
+            else
+            {
+                _db.Testimonials.Add(t);
+                added["testimonials"]++;
             }
         }
 

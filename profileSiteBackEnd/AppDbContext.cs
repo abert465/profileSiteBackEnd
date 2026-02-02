@@ -17,6 +17,7 @@ namespace profileSiteBackEnd
         public DbSet<Certification> Certifications => Set<Certification>();
         public DbSet<Profile> Profiles => Set<Profile>();
         public DbSet<Skill> Skills => Set<Skill>();
+        public DbSet<Testimonial> Testimonials => Set<Testimonial>();
 
         protected override void OnModelCreating(ModelBuilder b)
         {
@@ -77,6 +78,19 @@ namespace profileSiteBackEnd
                     .HasForeignKey(x => x.ProfileId)
                     .HasPrincipalKey("Id")
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            b.Entity<Testimonial>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Name).HasMaxLength(100).IsRequired();
+                e.Property(x => x.Title).HasMaxLength(100);
+                e.Property(x => x.Company).HasMaxLength(100);
+                e.Property(x => x.Content).HasMaxLength(1000).IsRequired();
+                e.Property(x => x.IsVisible).HasDefaultValue(true);
+                e.Property(x => x.Order);
+                e.Property(x => x.Date);
+                e.Property(x => x.Rating);
             });
         }
     }

@@ -36,6 +36,9 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 // Add Image Service
 builder.Services.AddScoped<IImageService, ImageService>();
 
+// Add CSRF validation filter
+builder.Services.AddScoped<ValidateAntiforgeryHeaderAttribute>();
+
 // Controllers + JSON (camelCase, ignore nulls)
 builder.Services.AddControllers()
     .AddJsonOptions(o =>
@@ -97,8 +100,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddAntiforgery(o =>
 {
     o.HeaderName = "X-CSRF-TOKEN";
-    o.Cookie.Name = "XSRF-TOKEN";
-    o.Cookie.HttpOnly = false;
+    o.Cookie.Name = ".AspNetCore.Antiforgery";  // Internal cookie for ASP.NET (not read by JS)
+    o.Cookie.HttpOnly = true;
     o.Cookie.SecurePolicy = isDev ? CookieSecurePolicy.None : CookieSecurePolicy.Always;
     o.Cookie.SameSite = SameSiteMode.Lax;
 });
@@ -248,6 +251,13 @@ app.MapGet("/api/education", async (AppDbContext db) =>
 app.MapGet("/api/certifications", async (AppDbContext db) =>
     await db.Certifications.AsNoTracking()
         .OrderByDescending(c => c.Issued ?? DateTime.MinValue)
+        .ToListAsync());
+
+app.MapGet("/api/testimonials", async (AppDbContext db) =>
+    await db.Testimonials.AsNoTracking()
+        .Where(t => t.IsVisible)
+        .OrderBy(t => t.Order ?? int.MaxValue)
+        .ThenByDescending(t => t.Date ?? DateTime.MinValue)
         .ToListAsync());
 
 app.MapGet("/api/blog", async (AppDbContext db) =>
