@@ -229,6 +229,30 @@ namespace profileSiteBackEnd.Models
         new Certification { Name = "Argo Browser‑Based Developer", Issuer = "Argo", Issued = new DateTime(2021, 10, 1), Expires = new DateTime(2022, 11, 1) },
         new Certification { Name = "Software Development Bootcamp", Issuer = "Austin Coding Academy", Issued = new DateTime(2016, 6, 1) }
     };
+
+        public static List<Testimonial> GetTestimonials() => new()
+    {
+        new Testimonial
+        {
+            Name = "Sarah Johnson",
+            Title = "Engineering Manager",
+            Company = "Easy Expunctions",
+            Content = "Albert consistently delivers maintainable, high-quality code and mentors teammates effectively. His work on our legal automation platform significantly reduced manual processing time.",
+            Date = new DateTime(2024, 11, 15),
+            IsVisible = true,
+            Order = 1
+        },
+        new Testimonial
+        {
+            Name = "Michael Chen",
+            Title = "Senior Developer",
+            Company = "IBC Bank",
+            Content = "Working with Albert was a great experience. He has strong technical skills and always takes time to ensure code quality and proper documentation.",
+            Date = new DateTime(2022, 5, 20),
+            IsVisible = true,
+            Order = 2
+        }
+    };
         #endregion
     }
     public class Profile
@@ -305,13 +329,26 @@ namespace profileSiteBackEnd.Models
 
     public class  Skill
     {
-        public int Id { get; set; } // Auto-incremented primary key 
+        public int Id { get; set; } // Auto-incremented primary key
         public string Name { get; set; } = string.Empty;
         public bool IsVisible { get; set; } = true; // Default to visible
         public int? Order { get; set; } // Default order for sorting
 
         public int ProfileId { get; set; } // Foreign key to Profile
         public Profile? Profile { get; set; } = null; // Navigation property
+    }
+
+    public class Testimonial
+    {
+        public int Id { get; set; } // Auto-incremented primary key
+        public string Name { get; set; } = string.Empty;
+        public string? Title { get; set; }
+        public string? Company { get; set; }
+        public string Content { get; set; } = string.Empty;
+        public DateTime? Date { get; set; }
+        public int? Rating { get; set; } // Optional 1-5 rating
+        public bool IsVisible { get; set; } = true;
+        public int? Order { get; set; } // For display ordering
     }
 
 }

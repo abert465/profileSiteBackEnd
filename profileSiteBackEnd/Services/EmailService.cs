@@ -42,6 +42,12 @@ namespace profileSiteBackEnd.Services
                     ? $"Portfolio Contact from {name}"
                     : $"Portfolio Contact: {subject}";
 
+                // HTML-encode all user inputs to prevent XSS
+                var encodedName = WebUtility.HtmlEncode(name);
+                var encodedEmail = WebUtility.HtmlEncode(email);
+                var encodedSubject = WebUtility.HtmlEncode(subject ?? "No subject provided");
+                var encodedMessage = WebUtility.HtmlEncode(message).Replace("\n", "<br>");
+
                 var emailBody = $@"
 <!DOCTYPE html>
 <html>
@@ -65,19 +71,19 @@ namespace profileSiteBackEnd.Services
         <div class='content'>
             <div class='field'>
                 <div class='label'>Name:</div>
-                <div>{name}</div>
+                <div>{encodedName}</div>
             </div>
             <div class='field'>
                 <div class='label'>Email:</div>
-                <div>{email}</div>
+                <div>{encodedEmail}</div>
             </div>
             <div class='field'>
                 <div class='label'>Subject:</div>
-                <div>{subject ?? "No subject provided"}</div>
+                <div>{encodedSubject}</div>
             </div>
             <div class='field'>
                 <div class='label'>Message:</div>
-                <div class='message'>{message.Replace("\n", "<br>")}</div>
+                <div class='message'>{encodedMessage}</div>
             </div>
         </div>
         <div class='footer'>
