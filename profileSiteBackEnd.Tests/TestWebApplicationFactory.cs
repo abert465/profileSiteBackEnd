@@ -16,6 +16,10 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // This factory creates the schema itself via EnsureCreated below, so the
+        // app's startup migration would collide with it.
+        builder.UseSetting("Database:MigrateOnStartup", "false");
+
         builder.ConfigureServices(services =>
         {
             var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));

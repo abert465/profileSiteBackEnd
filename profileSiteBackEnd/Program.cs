@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.FileProviders;
 using System.Threading.RateLimiting;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
@@ -157,12 +158,23 @@ builder.Services.AddRateLimiter(o =>
 
 var app = builder.Build();
 
-// Apply migrations and seed SampleData when enabled (see Seed:RunOnStartup in appsettings).
-if (builder.Configuration.GetValue<bool>("Seed:RunOnStartup"))
+// Bring the schema up to date on startup. This matters on first deploy, where
+// the database lives on a freshly mounted, empty volume. Tests supply their own
+// schema and switch this off.
+// Seeding stays a separate, opt-in step (Seed:RunOnStartup).
+using (var startupScope = app.Services.CreateScope())
 {
-    using var seedScope = app.Services.CreateScope();
-    var seeder = seedScope.ServiceProvider.GetRequiredService<DbSeeder>();
-    await seeder.SeedAsync();
+    if (builder.Configuration.GetValue("Database:MigrateOnStartup", true))
+    {
+        var db = startupScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Database.MigrateAsync();
+    }
+
+    if (builder.Configuration.GetValue<bool>("Seed:RunOnStartup"))
+    {
+        var seeder = startupScope.ServiceProvider.GetRequiredService<DbSeeder>();
+        await seeder.SeedAsync();
+    }
 }
 
 // Must run before anything that reads the client IP or the request scheme.
@@ -192,13 +204,31 @@ app.Use(async (ctx, next) =>
 });
 
 app.UseRateLimiter();
-app.UseStaticFiles(); // Serve static files from wwwroot
+
+app.UseDefaultFiles();
+app.UseStaticFiles(); // Serve the built SPA from wwwroot
+
+// Uploaded images live outside wwwroot in production so that a deploy, which
+// replaces the application image, does not take the uploads with it.
+var uploadsRoot = builder.Configuration["Storage:UploadsRoot"];
+if (!string.IsNullOrWhiteSpace(uploadsRoot))
+{
+    Directory.CreateDirectory(uploadsRoot);
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(Path.GetFullPath(uploadsRoot)),
+        RequestPath = "/uploads"
+    });
+}
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 // ===== Public API =====
+
+// Liveness probe for the hosting platform's health checks.
+app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 app.MapGet("/api/profile", async (AppDbContext db) =>
 {
     var p = await db.Profiles.AsNoTracking()
@@ -307,6 +337,14 @@ app.MapPost("/api/contact", async (IEmailService emailService, [FromBody] Contac
 //Block accidental GET to /login
 app.MapMethods("/api/admin/login", new[] { "GET", "HEAD" },
    () => Results.StatusCode(StatusCodes.Status405MethodNotAllowed));
+
+// An unmatched /api path is a missing endpoint, not a client-side route, so
+// it must 404 rather than fall through to the SPA shell below.
+app.Map("/api/{**rest}", () => Results.NotFound());
+
+// Client-side routes (/admin, /projects, ...) get index.html so the React
+// router can take over.
+app.MapFallbackToFile("index.html");
 
 app.Run();
 

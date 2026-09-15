@@ -26,10 +26,20 @@ namespace profileSiteBackEnd.Services
             return string.IsNullOrEmpty(cleaned) ? Guid.NewGuid().ToString("n") : cleaned;
         }
 
-        public ImageService(IWebHostEnvironment environment, ILogger<ImageService> logger)
+        private readonly string _uploadsRoot;
+
+        public ImageService(IWebHostEnvironment environment, ILogger<ImageService> logger,
+            IConfiguration configuration)
         {
             _environment = environment;
             _logger = logger;
+
+            // In production this points at a mounted volume so uploads outlive a
+            // deploy; locally it falls back to wwwroot/uploads as before.
+            var configured = configuration["Storage:UploadsRoot"];
+            _uploadsRoot = string.IsNullOrWhiteSpace(configured)
+                ? Path.Combine(_environment.WebRootPath, "uploads")
+                : Path.GetFullPath(configured);
         }
 
         public bool ValidateImage(IFormFile file)
@@ -51,7 +61,7 @@ namespace profileSiteBackEnd.Services
         {
             try
             {
-                var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "projects");
+                var uploadsFolder = Path.Combine(_uploadsRoot, "projects");
 
                 if (!Directory.Exists(uploadsFolder))
                 {
@@ -114,7 +124,7 @@ namespace profileSiteBackEnd.Services
             try
             {
                 var fileName = Path.GetFileName(imageUrl);
-                var filePath = Path.Combine(_environment.WebRootPath, "uploads", "projects", fileName);
+                var filePath = Path.Combine(_uploadsRoot, "projects", fileName);
 
                 if (File.Exists(filePath))
                 {
