@@ -56,11 +56,16 @@ namespace profileSiteBackEnd
                 new(v => JsonSerializer.Serialize(v ?? new(), json),
                     v => string.IsNullOrWhiteSpace(v) ? new() : JsonSerializer.Deserialize<List<string>>(v, json) ?? new());
 
+            // Education.Details is nullable, so it needs its own nullable-typed converter.
+            ValueConverter<List<string>?, string> listConvNullable =
+                new(v => JsonSerializer.Serialize(v ?? new(), json),
+                    v => string.IsNullOrWhiteSpace(v) ? new() : JsonSerializer.Deserialize<List<string>>(v, json) ?? new());
+
             b.Entity<Project>().Property(x => x.Tech).HasConversion(listConv);
             b.Entity<Project>().Property(x => x.Highlights).HasConversion(listConv);
             b.Entity<Experience>().Property(x => x.Highlights).HasConversion(listConv);
             b.Entity<Experience>().Property(x => x.Tech).HasConversion(listConv);
-            b.Entity<Education>().Property(x => x.Details).HasConversion(listConv);
+            b.Entity<Education>().Property(x => x.Details).HasConversion(listConvNullable);
 
             // Single row Profile convenience
             b.Entity<Profile>().Property<int>("Id").HasDefaultValue(1);

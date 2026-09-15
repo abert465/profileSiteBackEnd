@@ -25,8 +25,9 @@ namespace profileSiteBackEnd.Services
                 var fromEmail = _config["Email:FromEmail"];
                 var toEmail = _config["Email:ToEmail"] ?? fromEmail;
 
-                if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUser) || 
-                    string.IsNullOrEmpty(smtpPass) || string.IsNullOrEmpty(fromEmail))
+                if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUser) ||
+                    string.IsNullOrEmpty(smtpPass) || string.IsNullOrEmpty(fromEmail) ||
+                    string.IsNullOrEmpty(toEmail))
                 {
                     _logger.LogError("Email configuration is incomplete");
                     return false;
