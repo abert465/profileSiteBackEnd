@@ -11,8 +11,8 @@ namespace profileSiteBackEnd.Models
         {
             Name = "Albert Campos",
             Title = "Software Developer",
-            Tagline = "Full‑stack .NET developer shipping high‑impact systems across legal tech and finance.",
-            Summary = "I’m a business-minded software developer with 6+ years building scalable .NET services and React/Vue apps in finance and legal tech. I turn complex requirements into clean, reliable systems—optimizing SQL, automating delivery with Azure DevOps, and partnering closely with product, QA, and infra to ship faster with less toil. Recent wins include cutting database latency ~40% and reducing manual case processing ~30% through workflow automation.",
+            Tagline = "Full‑stack .NET developer shipping systems for finance, legal tech, and municipal government.",
+            Summary = "Full-stack .NET developer with 6+ years building web applications and business systems for finance, legal tech, and municipal government. I ship end to end on C#, .NET 8/10, ASP.NET Core, and SQL Server, with React, Vue, and Blazor on the front end. Most of my work has been replacing manual process with automation — legal case workflows, deployment pipelines, operational reporting — while keeping the legacy systems they replace running in production.",
             Location = "San Antonio, TX",
             Email = "acampos892@gmail.com",
             Github = "https://github.com/abert465",
@@ -22,7 +22,7 @@ namespace profileSiteBackEnd.Models
             // Backend & Languages
             // Plain ASCII hyphen in "T-SQL": a non-breaking hyphen (U+2011) here
             // looked identical on screen but seeded a second, duplicate chip.
-            "C#", ".NET 6-9", "ASP.NET Core", "Entity Framework", "Dapper", "LINQ", "T-SQL", "PowerShell",
+            "C#", ".NET 6-10", "ASP.NET Core", "Blazor", "Razor Pages", "Entity Framework", "Dapper", "LINQ", "VB.NET", "T-SQL", "PowerShell",
             // Frontend
             "React", "Vue", "TypeScript", "JavaScript", "HTML5", "CSS3", "Bootstrap",
             // Cloud & DevOps
@@ -32,7 +32,7 @@ namespace profileSiteBackEnd.Models
             // Databases & Reporting
             "SQL Server", "Stored Procedures", "SSIS", "SSRS", "Performance Tuning",
             // Tools & Practices
-            "Git", "Azure DevOps", "Visual Studio", "JIRA", "Salesforce", "Agile/Scrum", "SDLC", "TDD", "OOP", "MVVM", "Unit Testing"
+            "Git", "Azure DevOps", "Visual Studio", "JIRA", "Salesforce", "Power Automate", "Agile/Scrum", "SDLC", "TDD", "OOP", "MVVM", "Unit Testing"
         },
             Links = new() {
             new Link{ Label = "GitHub", Url = "https://github.com/abert465"},
@@ -90,6 +90,19 @@ namespace profileSiteBackEnd.Models
                 "Accelerated case processing by ~30%",
                 "Throughput >500 cases/month"
             }
+        },
+        new Project
+        {
+            Slug = "developer-portfolio-platform",
+            Title = "Developer Portfolio Platform",
+            Description = "This site: a .NET 10 API with EF Core and SQLite behind a React SPA served same‑origin from wwwroot.",
+            Tech = new(){ ".NET 10", "EF Core", "SQLite", "React", "Docker" },
+            RepoUrl = "https://github.com/abert465/profileSiteBackEnd",
+            LiveUrl = null,
+            Highlights = new(){
+                "Admin panel over the full content model, with BCrypt auth",
+                "Single container: SPA and API share an origin, so no CORS layer"
+            }
         }
     };
 
@@ -117,6 +130,22 @@ namespace profileSiteBackEnd.Models
     {
         new Experience
         {
+            Company = "Extra Duty Solutions / Jivasoft",
+            Role = "Software Developer",
+            Location = "San Antonio, TX",
+            Start = new DateTime(2025,9,17),
+            End = null, // Present
+            Highlights = new()
+            {
+                "Build full‑stack overtime and scheduling features in .NET 8, C#, Blazor, and SQL Server for police department workforce management, including the Boston Police Department deployment.",
+                "Write the T‑SQL stored procedures behind reporting, filtered search, and CRUD operations across the platform.",
+                "Implement configuration‑driven role‑based access control so new municipal clients onboard without code changes.",
+                "Maintain and extend legacy VB.NET/ASP.NET applications alongside the new platform, shipping fixes and client‑requested enhancements."
+            },
+            Tech = new(){ ".NET 8", "C#", "Blazor", "SQL Server", "T-SQL", "VB.NET", "ASP.NET" }
+        },
+        new Experience
+        {
             Company = "Easy Expunctions",
             Role = "Software Developer",
             Location = "San Antonio, TX",
@@ -124,14 +153,13 @@ namespace profileSiteBackEnd.Models
             End = new DateTime(2025,2,28),
             Highlights = new()
             {
-                "Led end‑to‑end dev of legal automation platforms in .NET 8 + EF + React/Vue, supporting thousands of users.",
-                "Delivered 15+ features with legal SMEs, reducing manual processing by ~30%.",
-                "Built/optimized SPAs; cut avg load time by ~40% and improved mobile responsiveness.",
-                "Refactored legacy code & T‑SQL; improved DB performance by ~40% and reduced errors.",
-                "Automated Azure DevOps pipelines; release time down ~60% with zero‑downtime pushes.",
-                "Championed code reviews/SDLC best practices to reduce post‑release defects and improve onboarding."
+                "Led end‑to‑end development of a legal automation platform on .NET 8, Entity Framework, and React/Vue, serving thousands of users through court expunction workflows.",
+                "Delivered 15+ features with legal subject‑matter experts, automating review steps that previously ran by hand and cutting manual case processing roughly 30%.",
+                "Refactored legacy T‑SQL and indexing strategy, cutting database latency about 40% and clearing the timeout errors behind the platform's most frequent support tickets.",
+                "Rebuilt release on Azure DevOps pipelines, moving deploys from a scheduled manual event to a zero‑downtime push, and set the code review and SDLC practice the team ran on.",
+                "Built Salesforce solutions in Apex and Visualforce with SOQL/SOSL data access, plus Flow automation and integrations through Salesforce APIs, Power Automate, and Azure Functions."
             },
-            Tech = new(){ ".NET 8", "EF Core", "React", "Vue", "Azure DevOps", "SQL Server" }
+            Tech = new(){ ".NET 8", "EF Core", "React", "Vue", "Azure DevOps", "SQL Server", "Salesforce" }
         },
         new Experience
         {
@@ -142,11 +170,10 @@ namespace profileSiteBackEnd.Models
             End = new DateTime(2022,7,1),
             Highlights = new()
             {
-                "Led lifecycle dev of ASP.NET internal tools impacting 500+ employees.",
-                "Built complex stored procedures & ETL (SSIS); improved data processing and reporting accuracy.",
-                "Drove Agile ceremonies; aligned user stories/AC for on‑time delivery.",
-                "Developed SSRS reports for leadership; enabled data‑driven decisions.",
-                "Standardized Git workflows; reduced merge conflicts by ~30%."
+                "Owned full lifecycle development of internal banking tools in C# and ASP.NET used by 500+ employees across daily operations.",
+                "Built SQL Server stored procedures and SSIS ETL pipelines feeding reporting over large transactional datasets.",
+                "Developed SSRS reports giving leadership direct visibility into operational banking metrics.",
+                "Standardized Git branching and code review across the development team, cutting merge conflicts roughly 30%."
             },
             Tech = new(){ "ASP.NET", "C#", "SQL Server", "SSIS", "SSRS", "Git" }
         },
@@ -159,9 +186,9 @@ namespace profileSiteBackEnd.Models
             End = new DateTime(2019,12,1),
             Highlights = new()
             {
-                "Resolved complex LMS cases with ~98% SLA adherence and high client satisfaction.",
-                "Shipped front‑end enhancements (HTML5/CSS/JS) reducing UI‑related tickets by ~15%.",
-                "Improved documentation/workflows, cutting average resolution time by ~10%."
+                "Resolved escalated Learning Management System cases at 98% SLA adherence for enterprise clients.",
+                "Shipped HTML5, CSS, and JavaScript front‑end fixes that removed a recurring class of UI support tickets at the source.",
+                "Rewrote internal documentation and support workflows, cutting average resolution time about 10%."
             },
             Tech = new(){ "HTML5", "CSS", "JavaScript" }
         },
@@ -174,8 +201,8 @@ namespace profileSiteBackEnd.Models
             End = new DateTime(2018,8,1),
             Highlights = new()
             {
-                "Integrated SAML/LDAP for 20+ enterprise clients for secure SSO.",
-                "Implemented client technical configs for seamless LMS setup and operation."
+                "Integrated SAML and LDAP single sign‑on for 20+ enterprise clients.",
+                "Owned client technical configuration through go‑live for diverse LMS environments."
             },
             Tech = new(){ "SAML", "LDAP" }
         },
