@@ -1,23 +1,14 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
-using BCrypt.Net;
-using Microsoft.AspNetCore.Antiforgery;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
-using profileSiteBackEnd.Models;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using profileSiteBackEnd;
 using profileSiteBackEnd.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//Admin config
-var adminUser = builder.Configuration["Admin:Username"] ?? "Admin";
-var adminHash = builder.Configuration["Admin:PasswordHash"]; // BCrypt hash
-var passcodeHash = builder.Configuration["Private:PasscodeHash"]; //BCrypt hash for private gate
 var isDev = builder.Environment.IsDevelopment();
 
 // Add services to the container.
@@ -155,19 +146,10 @@ app.UseCors("vite");
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseCors("vite");
     // Swagger disabled due to file upload endpoint compatibility issues
     // app.UseSwagger();
     // app.UseSwaggerUI();
 }
-
-//using (var scope = app.Services.CreateScope())
-//{
-//    var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
-//    await seeder.SeedAsync(reset: false);
-//}
-
-
 
 app.Use(async (ctx, next) =>
 {
@@ -184,24 +166,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-//===== Helpers =====
-static void SetXsrfCookie(HttpContext http, IAntiforgery af)
-{
-    var tokens = af.GetAndStoreTokens(http);
-    http.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!, new CookieOptions
-    {
-        HttpOnly = false,
-        Secure = true,
-        SameSite = SameSiteMode.Lax,
-        IsEssential = true
-    });
-}
-
 // ===== Public API =====
 app.MapGet("/api/profile", async (AppDbContext db) =>
-//await db.Profiles.AsNoTracking()
-//.Include(p => p.Links)
-//.FirstOrDefaultAsync());
 {
     var p = await db.Profiles.AsNoTracking()
         .Include(x => x.Links)
@@ -314,98 +280,10 @@ app.MapMethods("/api/{*path}", new[] { "OPTIONS" }, () => Results.Ok())
 app.MapMethods("/api/admin/login", new[] { "GET", "HEAD" },
    () => Results.StatusCode(StatusCodes.Status405MethodNotAllowed));
 
-//// Login (POST)
-//app.MapPost("/api/admin/login", async (HttpContext http, IAntiforgery af) =>
-//{
-//    if (!http.Request.HasJsonContentType())
-//        return Results.BadRequest(new { error = "Expected application/json" });
-
-//    var dto = await http.Request.ReadFromJsonAsync<LoginDto>(cancellationToken: http.RequestAborted);
-//    if (dto is null) return Results.BadRequest(new { error = "Invalid payload" });
-
-//    bool passwordOk = false;
-
-//    if (!string.IsNullOrWhiteSpace(adminHash))
-//    {
-//        // If the configured hash is malformed, BCrypt.Verify can throw → catch and treat as invalid
-//        try { passwordOk = BCrypt.Net.BCrypt.Verify(dto.Password ?? string.Empty, adminHash); }
-//        catch
-//        {
-//            // Optional: log the error so you know the hash is bad, but don't 500 the client
-//            Console.WriteLine("[ADMIN] Invalid Admin:PasswordHash format; treating as invalid credentials.");
-//            passwordOk = false;
-//        }
-//    }
-//    else
-//    {
-//        // Dev fallback only when no hash configured
-//        passwordOk = app.Environment.IsDevelopment() && (dto.Password == "test123");
-//    }
-
-//    if (!string.Equals(dto.Username, adminUser, StringComparison.Ordinal) || !passwordOk)
-//        return Results.Unauthorized();
-
-//    var claims = new List<Claim> {
-//        new(ClaimTypes.Name, adminUser),
-//        new(ClaimTypes.Role, "Admin")
-//    };
-//    var id = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-//    var principal = new ClaimsPrincipal(id);
-//    await http.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-//    // Issue CSRF cookie for subsequent POST/PUT/DELETE
-//    SetXsrfCookie(http, af);
-//    return Results.Ok(new { user = adminUser });
-//}).RequireRateLimiting("login");
-
-//// Admin logout endpoint
-//app.MapPost("/api/admin/logout", async (HttpContext http) =>
-//{
-//    await http.SignOutAsync();
-//    return Results.Ok();
-//});
-
-//// Admin: Get current user info
-//app.MapMethods("/api/admin/me", new[] { "GET", "HEAD" }, async (HttpContext http, IAntiforgery af) =>
-//{
-//    if (!http.User.Identity?.IsAuthenticated ?? true) return Results.Unauthorized();
-//    SetXsrfCookie(http, af);
-//    return Results.Ok(new
-//    {
-//        user = http.User.Identity!.Name,
-//        roles = http.User.Claims.Where(c => c.Type==ClaimTypes.Role).Select(c => c.Value)
-//    });
-//}).RequireAuthorization();
-
-// Admin: Projects CRUD endpoints
-#region <Resume import api endpoint>
-// Import endpoint to update in-memory data from JSON (for quick resume-driven updates)
-//app.MapPost("/api/import", ([FromBody] ResumeImport import) =>
-//{
-//    if (import.Profile is not null) profile = import.Profile;
-//    if (import.Projects is not null) projects = import.Projects;
-//    if (import.Posts is not null) posts = import.Posts;
-//    if (import.Experience is not null) experience = import.Experience;
-//    if (import.Education is not null) education = import.Education;
-//    if (import.Certifications is not null) certifications = import.Certifications;
-//    return Results.Ok(new { ok = true });
-//});
-#endregion
-
 app.Run();
 
-// ===== DTOs & Store =====
-record LoginDto(string? Username, string? Password);
-record PasscodeDto(string? Code);
+// ===== DTOs =====
 record ContactRequest(string Name, string Email, string? Subject, string Message);
 
-#region <Resume import DTO>
-//public record ResumeImport(
-//    Profile? Profile,
-//    List<Project>? Projects,
-//    List<Post>? Posts,
-//    List<Experience>? Experience,
-//    List<Education>? Education,
-//    List<Certification>? Certifications
-//);
-#endregion
+// Exposes Program to WebApplicationFactory<Program> in the test project.
+public partial class Program { }
