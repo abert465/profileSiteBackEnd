@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -14,6 +15,16 @@ namespace profileSiteBackEnd.Services
         private const int MaxHeight = 800;
         private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
         private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+        private static readonly Regex UnsafeSlugChars = new("[^a-zA-Z0-9_-]+", RegexOptions.Compiled);
+
+        // Project slugs come from admin-supplied request data and are used to build
+        // a filename, so a slug containing path separators or ".." could otherwise
+        // write outside the uploads folder.
+        private static string SanitizeSlug(string slug)
+        {
+            var cleaned = UnsafeSlugChars.Replace(slug ?? string.Empty, "-").Trim('-', '.');
+            return string.IsNullOrEmpty(cleaned) ? Guid.NewGuid().ToString("n") : cleaned;
+        }
 
         public ImageService(IWebHostEnvironment environment, ILogger<ImageService> logger)
         {
@@ -48,8 +59,14 @@ namespace profileSiteBackEnd.Services
                 }
 
                 var fileExtension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
-                var fileName = $"{projectSlug}{fileExtension}";
+                var fileName = $"{SanitizeSlug(projectSlug)}{fileExtension}";
                 var filePath = Path.Combine(uploadsFolder, fileName);
+
+                // Defence in depth: confirm the resolved path really is inside the
+                // uploads folder before anything is written.
+                var uploadsRoot = Path.GetFullPath(uploadsFolder) + Path.DirectorySeparatorChar;
+                if (!Path.GetFullPath(filePath).StartsWith(uploadsRoot, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Upload path resolved outside the uploads directory.");
 
                 using (var image = await Image.LoadAsync(imageFile.OpenReadStream()))
                 {
