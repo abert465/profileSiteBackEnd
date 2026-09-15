@@ -181,6 +181,7 @@ public class DbSeeder
             {
                 row.Company   = e.Company;
                 row.Role      = e.Role;
+                row.RoleNote  = e.RoleNote;
                 row.Location  = e.Location;
                 row.Start     = e.Start;
                 row.End       = e.End;
@@ -193,6 +194,22 @@ public class DbSeeder
                 added["experience"]++;
             }
         }
+
+        // Remove rows no longer in SampleData, matching how Projects are handled.
+        // Without this, editing an entry's role or start date silently leaves the
+        // old row behind rather than replacing it, because the key changes and the
+        // upsert above treats the edited version as a brand new entry. Merging two
+        // roles into one is exactly that case: it would add the merged entry and
+        // keep both originals, so the site would show a longer history than the
+        // resume.
+        //
+        // Note this makes SampleData authoritative for experience: a row added
+        // through the admin UI and never added to SampleData will be removed the
+        // next time the seeder runs.
+        var sampleExpKeys = SampleData.GetExperience().Select(ExpKey).ToHashSet();
+        var orphanExperience = expAll.Where(e => !sampleExpKeys.Contains(ExpKey(e))).ToList();
+        if (orphanExperience.Count > 0)
+            _db.Experiences.RemoveRange(orphanExperience);
 
         // ---- Education ----
         var eduAll = await _db.Educations.ToListAsync(ct);

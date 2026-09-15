@@ -19,6 +19,7 @@ export function getPosts()         { return fetch(`${prefix}/api/blog`).then(han
 export function getExperience()    { return fetch(`${prefix}/api/experience`).then(handle) }
 export function getEducation()     { return fetch(`${prefix}/api/education`).then(handle) }
 export function getCertifications(){ return fetch(`${prefix}/api/certifications`).then(handle) }
+export function getTestimonials() { return fetch(`${prefix}/api/testimonials`).then(handle) }
 
 export function sendContact(payload) {
   return fetch(`${prefix}/api/contact`, {

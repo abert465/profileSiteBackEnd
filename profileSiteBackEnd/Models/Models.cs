@@ -32,7 +32,7 @@ namespace profileSiteBackEnd.Models
             // Databases & Reporting
             "SQL Server", "Stored Procedures", "SSIS", "SSRS", "Performance Tuning",
             // Tools & Practices
-            "Git", "Azure DevOps", "Visual Studio", "JIRA", "Salesforce", "Power Automate", "Agile/Scrum", "SDLC", "TDD", "OOP", "MVVM", "Unit Testing"
+            "Git", "Azure DevOps", "Visual Studio", "JIRA", "Salesforce", "Power Automate", "Agile/Scrum", "SDLC", "TDD", "OOP", "MVVM", "Unit Testing", "Code Review"
         },
             Links = new() {
             new Link{ Label = "GitHub", Url = "https://github.com/abert465"},
@@ -50,7 +50,9 @@ namespace profileSiteBackEnd.Models
             Tech = new(){".NET", "React", "SQL Server"},
             RepoUrl = null,
             LiveUrl = null,
-            Highlights = new(){"Reduced manual steps by 60%","Optimized T-SQL by 40%"}
+            // Figures match the resume exactly. Two documents quoting different
+            // numbers for the same work is a question you do not want to field.
+            Highlights = new(){"Cut manual case processing roughly 30%","Cut database latency about 40%"}
         },
          new Project
         {
@@ -61,8 +63,8 @@ namespace profileSiteBackEnd.Models
             RepoUrl = null,
             LiveUrl = null,
             Highlights = new(){
-                "Reduced attorney workload by ~40%",
-                "Saved 15–20 staff hours/week"
+                "Handles routine client FAQs end to end",
+                "Returned 15–20 hours per week to legal staff"
             }
         },
         new Project
@@ -95,13 +97,14 @@ namespace profileSiteBackEnd.Models
         {
             Slug = "developer-portfolio-platform",
             Title = "Developer Portfolio Platform",
-            Description = "This site: a .NET 10 API with EF Core and SQLite behind a React SPA served same‑origin from wwwroot.",
-            Tech = new(){ ".NET 10", "EF Core", "SQLite", "React", "Docker" },
+            Description = "This site: a .NET 10 API with EF Core and SQLite behind a React SPA served same‑origin from wwwroot, self‑hosted and published through a Cloudflare Tunnel.",
+            Tech = new(){ ".NET 10", "EF Core", "SQLite", "React", "Cloudflare Tunnel" },
             RepoUrl = "https://github.com/abert465/profileSiteBackEnd",
-            LiveUrl = null,
+            LiveUrl = "https://tedko.dev",
             Highlights = new(){
                 "Admin panel over the full content model, with BCrypt auth",
-                "Single container: SPA and API share an origin, so no CORS layer"
+                "Runs as a Windows service bound to loopback; no inbound port is open",
+                "SPA and API share an origin, so there is no CORS layer to configure"
             }
         }
     };
@@ -177,58 +180,37 @@ namespace profileSiteBackEnd.Models
             },
             Tech = new(){ "ASP.NET", "C#", "SQL Server", "SSIS", "SSRS", "Git" }
         },
+        // The two Inspired eLearning roles and the two Chase roles are each a
+        // single entry covering the full span, with the promotion noted in the
+        // role line. This matches the resume: a recruiter reading both should
+        // not find a different number of jobs or different dates in each.
         new Experience
         {
             Company = "Inspired eLearning",
             Role = "Tier 3 Technical Support Analyst",
+            RoleNote = "Promoted from Technical Support Analyst, August 2018",
             Location = "San Antonio, TX",
-            Start = new DateTime(2018,8,1),
+            Start = new DateTime(2017,4,1),
             End = new DateTime(2019,12,1),
             Highlights = new()
             {
                 "Resolved escalated Learning Management System cases at 98% SLA adherence for enterprise clients.",
                 "Shipped HTML5, CSS, and JavaScript front‑end fixes that removed a recurring class of UI support tickets at the source.",
-                "Rewrote internal documentation and support workflows, cutting average resolution time about 10%."
+                "Integrated SAML and LDAP single sign‑on for 20+ enterprise clients and owned their technical configuration through go‑live."
             },
-            Tech = new(){ "HTML5", "CSS", "JavaScript" }
-        },
-        new Experience
-        {
-            Company = "Inspired eLearning",
-            Role = "Technical Support Analyst",
-            Location = "San Antonio, TX",
-            Start = new DateTime(2017,4,1),
-            End = new DateTime(2018,8,1),
-            Highlights = new()
-            {
-                "Integrated SAML and LDAP single sign‑on for 20+ enterprise clients.",
-                "Owned client technical configuration through go‑live for diverse LMS environments."
-            },
-            Tech = new(){ "SAML", "LDAP" }
+            Tech = new(){ "HTML5", "CSS", "JavaScript", "SAML", "LDAP" }
         },
         new Experience
         {
             Company = "Chase Bank",
             Role = "Operations Sr. Specialist",
+            RoleNote = "Started as Technology Operations Intern",
             Location = "San Antonio, TX",
-            Start = new DateTime(2014,11,1),
+            Start = new DateTime(2013,7,1),
             End = new DateTime(2017,1,1),
             Highlights = new()
             {
-                "Conducted operational audits; implemented process improvements raising productivity ~15%."
-            },
-            Tech = new()
-        },
-        new Experience
-        {
-            Company = "Chase Bank",
-            Role = "Technology Operations Intern",
-            Location = "San Antonio, TX",
-            Start = new DateTime(2013,7,1),
-            End = new DateTime(2014,11,1),
-            Highlights = new()
-            {
-                "Resolved 1,000+ Tier 1 cases (VOIP, VDI, desktop) while exceeding resolution targets."
+                "Audited daily operational workflows and implemented process improvements that raised team productivity about 15%; resolved 1,000+ Tier 1 VOIP, VDI, and desktop cases as an intern before moving into the specialist role."
             },
             Tech = new(){ "Windows", "VDI" }
         }
@@ -306,6 +288,13 @@ namespace profileSiteBackEnd.Models
         public int Id { get; set; } // Auto-incremented primary key
         public string Company { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
+
+        // Progression within a single entry, e.g. "Promoted from Technical
+        // Support Analyst, August 2018". Lets one row cover a span that included
+        // a title change, instead of splitting it into two entries and making
+        // the history look longer than the resume's.
+        public string? RoleNote { get; set; }
+
         public string? Location { get; set; }
         public DateTime Start { get; set; }
         public DateTime? End { get; set; } // null for Present

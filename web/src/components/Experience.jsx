@@ -9,6 +9,9 @@ export default function Experience({ experience = [] }) {
               <div className="absolute -left-1.5 w-3 h-3 bg-blue-600 rounded-full" />
               <h3 className="font-semibold">{e.role} — {e.company}</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">{format(e.start)} – {e.end ? format(e.end) : 'Present'}{e.location ? ` • ${e.location}` : ''}</p>
+              {e.roleNote ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400 italic">{e.roleNote}</p>
+              ) : null}
               <ul className="mt-2 list-disc list-inside text-gray-700 dark:text-gray-300">
                 {e.highlights?.map((h,i)=> <li key={i}>{h}</li>)}
               </ul>

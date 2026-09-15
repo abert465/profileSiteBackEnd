@@ -12,7 +12,7 @@ import Blog from './components/Blog'
 import Testimonials from './components/Testimonials'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
-import { getProfile, getProjects, getPosts, getExperience, getEducation, getCertifications } from './lib/api'
+import { getProfile, getProjects, getPosts, getExperience, getEducation, getCertifications, getTestimonials } from './lib/api'
 
 export default function App(){
   const [profile, setProfile] = useState(null)
@@ -21,6 +21,7 @@ export default function App(){
   const [experience, setExperience] = useState([])
   const [education, setEducation] = useState([])
   const [certifications, setCertifications] = useState([])
+  const [testimonials, setTestimonials] = useState([])
 
   useEffect(() => {
     (async () => {
@@ -30,6 +31,7 @@ export default function App(){
       setExperience(await getExperience())
       setEducation(await getEducation())
       setCertifications(await getCertifications())
+      setTestimonials(await getTestimonials())
     })()
   }, [])
 
@@ -44,7 +46,7 @@ export default function App(){
       <Experience experience={experience} />
       <Education education={education} />
       <Certifications certifications={certifications} />
-      <Testimonials />
+      <Testimonials testimonials={testimonials} />
       <Blog posts={posts} />
       <Contact profile={profile} />
       <Footer />
