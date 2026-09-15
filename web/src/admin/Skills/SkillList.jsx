@@ -8,7 +8,6 @@ import {
 
 export default function SkillsList() {
   const [rows, setRows] = useState([]);
-  const [raw, setRaw] = useState(null); // debug: what did the API return?
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
@@ -19,7 +18,6 @@ export default function SkillsList() {
     setErr("");
     try {
       const data = await listSkillsAdmin();
-      setRaw(data);
       // accept array or {items:[...]}
       const arr = Array.isArray(data)
         ? data

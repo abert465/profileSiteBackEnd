@@ -9,7 +9,9 @@ export default function ThemeToggle(){
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark)
-    try { localStorage.setItem('theme', dark ? 'dark' : 'light') } catch {}
+    // localStorage throws in private browsing and with cookies blocked; the
+    // toggle still works for the session, it just will not be remembered.
+    try { localStorage.setItem('theme', dark ? 'dark' : 'light') } catch { /* not persistable */ }
   }, [dark])
 
   return (
