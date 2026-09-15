@@ -6,8 +6,8 @@ export default function AdminLayout(){
   // ['Profile','/admin/profile'],
   ['Projects','/admin/projects'],
   ['Experience','/admin/experience'],
-  // ['Education','/admin/education'],
-  // ['Certifications','/admin/certifications'],
+  ['Education','/admin/education'],
+  ['Certifications','/admin/certifications'],
   // ['Posts','/admin/posts'],
   ['Skills','/admin/skills'],
   ]

@@ -4,7 +4,7 @@ export default function About({ profile }) {
       <div className="max-w-6xl mx-auto px-4">
         <h2 className="text-2xl font-bold">About Me</h2>
         <p className="mt-4 max-w-3xl text-gray-700 dark:text-gray-300">
-          {profile?.summary || "I'm a software developer specializing in .NET (5–9), C#, SQL optimization, and modern web (React/Vue). I build scalable, maintainable systems and love shaving milliseconds off hot paths."}
+          {profile?.summary || "I'm a software developer specializing in .NET (5–9), C#, SQL optimization, and modern web frontend. I build scalable, maintainable systems and love shaving milliseconds off hot paths."}
         </p>
         {profile?.links?.length ? (
           <ul className="mt-4 flex flex-wrap gap-3">

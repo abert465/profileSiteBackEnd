@@ -4,7 +4,9 @@ const prefix = base ? base : "";
 function getCookieValue(cookieKey) {
   const rows = document.cookie.split("; ");
   const hit = rows.find((r) => r.startsWith(`${cookieKey}=`));
-  return hit?.split("=")[1];
+  // Split only on the first "=" - antiforgery tokens are base64 and can
+  // contain "=" padding, which split("=")[1] would truncate.
+  return hit?.slice(cookieKey.length + 1);
 }
 
 const csrfHeader = () => ({
@@ -62,24 +64,6 @@ export const deleteProject = (slug) =>
     headers: { ...csrfHeader() },
   }).then(handle);
 
-export const uploadProjectImage = (slug, imageFile) => {
-  const formData = new FormData();
-  formData.append("image", imageFile);
-  return fetch(`${prefix}/api/admin/projects/${encodeURIComponent(slug)}/image`, {
-    method: "POST",
-    credentials: "include",
-    headers: { ...csrfHeader() },
-    body: formData,
-  }).then(handle);
-};
-
-export const deleteProjectImage = (slug) =>
-  fetch(`${prefix}/api/admin/projects/${encodeURIComponent(slug)}/image`, {
-    method: "DELETE",
-    credentials: "include",
-    headers: { ...csrfHeader() },
-  }).then(handle);
-
 export const listSkillsAdmin = () =>
   fetch(`${prefix}/api/admin/skills`, { credentials: "include" }).then(handle);
 
@@ -106,7 +90,7 @@ export const deleteSkillAdmin = (id) =>
     headers: { ...csrfHeader() },
   }).then(handle);
 
-  export const listExperiencesAdmin = () =>
+export const listExperiencesAdmin = () =>
   fetch(`${prefix}/api/admin/experience`, {
     credentials: "include",
     headers: { ...csrfHeader() },
@@ -138,20 +122,57 @@ export const deleteExperienceAdminByIndex = (i) =>
     headers: { ...csrfHeader() },
   }).then(handle);
 
-// Project image upload
-export const uploadProjectImage = (slug, imageFile) => {
-  const formData = new FormData();
-  formData.append("image", imageFile);
-  return fetch(`${prefix}/api/admin/projects/${encodeURIComponent(slug)}/image`, {
+export const listEducationAdmin = () =>
+  fetch(`${prefix}/api/admin/education`, { credentials: "include" }).then(
+    handle
+  );
+
+export const addEducationAdmin = (e) =>
+  fetch(`${prefix}/api/admin/education`, {
     method: "POST",
     credentials: "include",
-    headers: { ...csrfHeader() },
-    body: formData,
+    headers: { "Content-Type": "application/json", ...csrfHeader() },
+    body: JSON.stringify(e),
   }).then(handle);
-};
 
-export const deleteProjectImage = (slug) =>
-  fetch(`${prefix}/api/admin/projects/${encodeURIComponent(slug)}/image`, {
+export const updateEducationAdmin = (i, e) =>
+  fetch(`${prefix}/api/admin/education/${i}`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeader() },
+    body: JSON.stringify(e),
+  }).then(handle);
+
+export const deleteEducationAdmin = (i) =>
+  fetch(`${prefix}/api/admin/education/${i}`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: { ...csrfHeader() },
+  }).then(handle);
+
+export const listCertsAdmin = () =>
+  fetch(`${prefix}/api/admin/certifications`, { credentials: "include" }).then(
+    handle
+  );
+
+export const addCertAdmin = (c) =>
+  fetch(`${prefix}/api/admin/certifications`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeader() },
+    body: JSON.stringify(c),
+  }).then(handle);
+
+export const updateCertAdmin = (i, c) =>
+  fetch(`${prefix}/api/admin/certifications/${i}`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeader() },
+    body: JSON.stringify(c),
+  }).then(handle);
+
+export const deleteCertAdmin = (i) =>
+  fetch(`${prefix}/api/admin/certifications/${i}`, {
     method: "DELETE",
     credentials: "include",
     headers: { ...csrfHeader() },
