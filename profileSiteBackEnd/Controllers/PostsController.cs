@@ -43,7 +43,7 @@ namespace profileSiteBackEnd.Controllers
         {
             var row = await _db.Posts.FindAsync(slug);
             if (row is null) return NotFound();
-            row.Title = p.Title; row.Excerpt = p.Excerpt;
+            row.Title = p.Title; row.Excerpt = p.Excerpt; row.Content = p.Content;
             if (p.Published != default) row.Published = p.Published;
             await _db.SaveChangesAsync();
             return Ok(row);
