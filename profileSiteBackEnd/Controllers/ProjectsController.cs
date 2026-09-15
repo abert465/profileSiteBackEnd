@@ -47,8 +47,9 @@ namespace profileSiteBackEnd.Controllers
             var row = await _db.Projects.FindAsync(slug);
             if (row is null) return NotFound();
             row.Title = p.Title; row.Description = p.Description;
-            row.Tech = new(p.Tech); row.RepoUrl = p.RepoUrl; row.LiveUrl = p.LiveUrl;
-            row.Highlights = new(p.Highlights);
+            // The client may omit these or send null outright.
+            row.Tech = new(p.Tech ?? []); row.RepoUrl = p.RepoUrl; row.LiveUrl = p.LiveUrl;
+            row.Highlights = new(p.Highlights ?? []);
             await _db.SaveChangesAsync();
             return Ok(row);
         }
