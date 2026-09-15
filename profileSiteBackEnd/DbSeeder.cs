@@ -153,6 +153,7 @@ public class DbSeeder
             {
                 existing.Title     = p.Title;
                 existing.Excerpt   = p.Excerpt;
+                existing.Content   = p.Content;
                 existing.Published = (p.Published == default) ? existing.Published : p.Published;
             }
         }
