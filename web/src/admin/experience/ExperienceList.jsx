@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   listExperiencesAdmin,
-  deleteExperienceAdminByIndex,
+  deleteExperienceAdmin,
 } from "/src/lib/adminApi"; // adjust if your path differs
 
 const toDate = (v) => (v ? new Date(v).toLocaleDateString() : null);
@@ -18,7 +18,6 @@ export default function ExperienceList() {
     try {
       const data = await listExperiencesAdmin();
       const arr = Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : []);
-      // Keep server order so indexes line up with PUT/DELETE-by-index
       setRows(arr);
     } catch (ex) {
       setErr(String(ex.message || ex));
@@ -29,11 +28,11 @@ export default function ExperienceList() {
   }
   useEffect(() => { load(); }, []);
 
-  async function remove(i) {
+  async function remove(id) {
     if (!confirm("Delete this experience?")) return;
     try {
-      await deleteExperienceAdminByIndex(i);
-      await load(); // indices shift after delete
+      await deleteExperienceAdmin(id);
+      await load();
     } catch (ex) {
       setErr(String(ex.message || ex));
     }
@@ -73,6 +72,7 @@ export default function ExperienceList() {
             </tr>
           ) : (
             rows.map((r, i) => {
+              const id = r.Id ?? r.id;
               const company = r.Company ?? r.company;
               const role = r.Role ?? r.role;
               const loc = r.Location ?? r.location;
@@ -82,7 +82,7 @@ export default function ExperienceList() {
               const highlightsArr = Array.isArray(r.Highlights) ? r.Highlights : [];
 
               return (
-                <tr key={i} className="border-t align-top">
+                <tr key={id ?? i} className="border-t align-top">
                   <td className="p-2 border text-sm">{i}</td>
                   <td className="p-2 border">{company}</td>
                   <td className="p-2 border">{role}</td>
@@ -105,10 +105,10 @@ export default function ExperienceList() {
                     )}
                   </td>
                   <td className="p-2 border text-sm">
-                    <Link to={`/admin/experience/${i}`} className="underline mr-3">
+                    <Link to={`/admin/experience/${id}`} className="underline mr-3">
                       Edit
                     </Link>
-                    <button onClick={() => remove(i)} className="text-red-600">
+                    <button onClick={() => remove(id)} className="text-red-600">
                       Delete
                     </button>
                   </td>

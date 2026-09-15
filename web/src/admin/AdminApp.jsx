@@ -44,7 +44,7 @@ export default function AdminApp() {
           <Route path="projects/:slug" element={<ProjectForm />} />
           <Route path="experience" element={<ExperienceList />} />
           <Route path="experience/new" element={<ExperienceForm />} />
-          <Route path="experience/:index" element={<ExperienceEdit />} />
+          <Route path="experience/:id" element={<ExperienceEdit />} />
           <Route path="skills" element={<SkillsList />} />
           <Route path="education" element={<EducationList />} />
           <Route path="education/new" element={<EducationForm />} />

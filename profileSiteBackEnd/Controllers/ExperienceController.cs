@@ -21,42 +21,57 @@ namespace profileSiteBackEnd.Controllers
         #endregion
 
         #region <methods>
+        // Id is the tiebreaker: entries sharing a start date would otherwise have
+        // no defined order, and callers page through this list.
         [HttpGet]
         public Task<List<Experience>> List() =>
-            _db.Experiences.OrderByDescending(e => e.Start).ToListAsync();
+            _db.Experiences.OrderByDescending(e => e.Start).ThenByDescending(e => e.Id).ToListAsync();
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var row = await _db.Experiences.FindAsync(id);
+            return row is null ? NotFound() : Ok(row);
+        }
 
         [HttpPost]
-       [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Create([FromBody] Experience e)
         {
+            if (string.IsNullOrWhiteSpace(e.Company) || string.IsNullOrWhiteSpace(e.Role))
+                return BadRequest(new { error = "Company and Role are required." });
+
             _db.Experiences.Add(e);
             await _db.SaveChangesAsync();
             return Ok(e);
         }
 
-        [HttpPut("{i:int}")]
-       [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
-        public async Task<IActionResult> UpdateByIndex(int i, [FromBody] Experience e)
+        [HttpPut("{id:int}")]
+        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        public async Task<IActionResult> Update(int id, [FromBody] Experience e)
         {
-            var ordered = await _db.Experiences.OrderByDescending(x => x.Start).ToListAsync();
-            if (i < 0 || i >= ordered.Count) return NotFound();
-            var row = await _db.Experiences.FindAsync(ordered[i].Id);
+            var row = await _db.Experiences.FindAsync(id);
             if (row is null) return NotFound();
+
+            if (string.IsNullOrWhiteSpace(e.Company) || string.IsNullOrWhiteSpace(e.Role))
+                return BadRequest(new { error = "Company and Role are required." });
 
             row.Company = e.Company; row.Role = e.Role; row.Location = e.Location;
             row.Start = e.Start; row.End = e.End;
-            row.Highlights = new(e.Highlights); row.Tech = new(e.Tech);
+            // The client may omit these or send null outright.
+            row.Highlights = new(e.Highlights ?? []); row.Tech = new(e.Tech ?? []);
             await _db.SaveChangesAsync();
             return Ok(row);
         }
 
-        [HttpDelete("{i:int}")]
-       [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
-        public async Task<IActionResult> DeleteByIndex(int i)
+        [HttpDelete("{id:int}")]
+        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        public async Task<IActionResult> Delete(int id)
         {
-            var ordered = await _db.Experiences.OrderByDescending(x => x.Start).ToListAsync();
-            if (i < 0 || i >= ordered.Count) return NotFound();
-            _db.Experiences.Remove(ordered[i]);
+            var row = await _db.Experiences.FindAsync(id);
+            if (row is null) return NotFound();
+
+            _db.Experiences.Remove(row);
             await _db.SaveChangesAsync();
             return NoContent();
         }

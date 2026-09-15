@@ -105,18 +105,19 @@ export const addExperienceAdmin = (payload) =>
     body: JSON.stringify(payload),
   }).then(handle);
 
-// UPDATE *by index* (i), not by id
-export const updateExperienceAdminByIndex = (i, payload) =>
-  fetch(`${prefix}/api/admin/experience/${i}`, {
+export const getExperienceAdmin = (id) =>
+  fetch(`${prefix}/api/admin/experience/${id}`, { credentials: "include" }).then(handle);
+
+export const updateExperienceAdmin = (id, payload) =>
+  fetch(`${prefix}/api/admin/experience/${id}`, {
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json", ...csrfHeader() },
     body: JSON.stringify(payload),
   }).then(handle);
 
-// DELETE *by index* (i), not by id
-export const deleteExperienceAdminByIndex = (i) =>
-  fetch(`${prefix}/api/admin/experience/${i}`, {
+export const deleteExperienceAdmin = (id) =>
+  fetch(`${prefix}/api/admin/experience/${id}`, {
     method: "DELETE",
     credentials: "include",
     headers: { ...csrfHeader() },

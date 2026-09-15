@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import {
-  listExperiencesAdmin,
-  updateExperienceAdminByIndex,
-  deleteExperienceAdminByIndex,
+  getExperienceAdmin,
+  updateExperienceAdmin,
+  deleteExperienceAdmin,
 } from "../../lib/adminApi";
 
 // helpers
@@ -13,11 +13,11 @@ const linesToArray = (text) => text.split(/\r?\n/).map(s => s.trim()).filter(Boo
 const commaToArray = (text) => text.split(",").map(s => s.trim()).filter(Boolean);
 
 export default function ExperienceEdit() {
-  const { index } = useParams();
-  const i = useMemo(() => {
-    const n = Number.parseInt(index, 10);
-    return Number.isFinite(n) && n >= 0 ? n : null;
-  }, [index]);
+  const { id: idParam } = useParams();
+  const id = useMemo(() => {
+    const n = Number.parseInt(idParam, 10);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }, [idParam]);
 
   const nav = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -35,19 +35,17 @@ export default function ExperienceEdit() {
   });
 
   async function load() {
-    if (i === null) {
-      setErr("Invalid experience index.");
+    if (id === null) {
+      setErr("Invalid experience id.");
       setLoading(false);
       return;
     }
     setLoading(true);
     setErr("");
     try {
-      const data = await listExperiencesAdmin();
-      const arr = Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : []);
-      const row = arr[i];
+      const row = await getExperienceAdmin(id);
       if (!row) {
-        setErr(`No experience found at index ${i}.`);
+        setErr(`No experience found with id ${id}.`);
       } else {
         setForm({
           company: row.Company ?? row.company ?? "",
@@ -66,7 +64,7 @@ export default function ExperienceEdit() {
     }
   }
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [i]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
 
   async function onSave(e) {
     e.preventDefault();
@@ -86,7 +84,7 @@ export default function ExperienceEdit() {
         Tech: commaToArray(form.techText),
         Highlights: linesToArray(form.highlightsText),
       };
-      await updateExperienceAdminByIndex(i, payload);
+      await updateExperienceAdmin(id, payload);
       nav("/admin/experience");
     } catch (ex) {
       setErr(String(ex.message || ex));
@@ -98,7 +96,7 @@ export default function ExperienceEdit() {
   async function onDelete() {
     if (!confirm("Delete this experience?")) return;
     try {
-      await deleteExperienceAdminByIndex(i);
+      await deleteExperienceAdmin(id);
       nav("/admin/experience");
     } catch (ex) {
       setErr(String(ex.message || ex));
