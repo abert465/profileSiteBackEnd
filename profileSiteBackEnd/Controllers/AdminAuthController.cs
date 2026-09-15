@@ -18,6 +18,7 @@ public class AdminAuthController : ControllerBase
     private readonly IConfiguration _cfg;
     private readonly IWebHostEnvironment _env;
     private readonly IAntiforgery _af;
+    private readonly ILogger<AdminAuthController> _logger;
 
 
     private void IssueXsrfCookie()
@@ -34,9 +35,10 @@ public class AdminAuthController : ControllerBase
     #endregion
 
     #region <ctor>
-    public AdminAuthController(IConfiguration cfg, IWebHostEnvironment env, IAntiforgery af)
+    public AdminAuthController(IConfiguration cfg, IWebHostEnvironment env, IAntiforgery af,
+        ILogger<AdminAuthController> logger)
     {
-        _cfg = cfg; _env = env; _af = af;
+        _cfg = cfg; _env = env; _af = af; _logger = logger;
     }
     #endregion
 
@@ -55,15 +57,20 @@ public class AdminAuthController : ControllerBase
         var adminUser = _cfg["Admin:Username"] ?? "Admin";
         var adminHash = _cfg["Admin:PasswordHash"]; // BCrypt hash
 
-        bool passwordOk = false;
-        if (!string.IsNullOrWhiteSpace(adminHash))
+        // Fail closed when no hash is configured. There is deliberately no
+        // default or development password: set Admin:PasswordHash through
+        // user-secrets locally, or Admin__PasswordHash in the environment.
+        if (string.IsNullOrWhiteSpace(adminHash))
         {
-            try { passwordOk = BCrypt.Net.BCrypt.Verify(dto.Password ?? string.Empty, adminHash); }
-            catch { /* bad hash format -> remain false */ }
+            _logger.LogError("Admin:PasswordHash is not configured; rejecting all admin logins.");
+            return Unauthorized();
         }
-        else
+
+        bool passwordOk = false;
+        try { passwordOk = BCrypt.Net.BCrypt.Verify(dto.Password ?? string.Empty, adminHash); }
+        catch (Exception ex)
         {
-            passwordOk = _env.IsDevelopment() && (dto.Password == "test123");
+            _logger.LogError(ex, "Admin:PasswordHash is not a valid BCrypt hash.");
         }
 
         if (!string.Equals(dto.Username, adminUser, StringComparison.Ordinal) || !passwordOk)
