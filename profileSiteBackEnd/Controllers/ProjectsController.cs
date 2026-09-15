@@ -30,7 +30,7 @@ namespace profileSiteBackEnd.Controllers
        _db.Projects.OrderBy(p => p.Title).ToListAsync();
 
         [HttpPost]
-        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Create([FromBody] Project p)
         {
             p.Slug = string.IsNullOrWhiteSpace(p.Slug) ? Guid.NewGuid().ToString("n") : p.Slug;
@@ -41,7 +41,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpPut("{slug}")]
-        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Update(string slug, [FromBody] Project p)
         {
             var row = await _db.Projects.FindAsync(slug);
@@ -55,7 +55,7 @@ namespace profileSiteBackEnd.Controllers
 
         [HttpPost("{slug}/image")]
         [RequestSizeLimit(5 * 1024 * 1024)] // 5MB limit
-        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> UploadImage(string slug, [FromForm] IFormFile image)
         {
             var project = await _db.Projects.FindAsync(slug);
@@ -79,7 +79,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpDelete("{slug}/image")]
-        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> DeleteImage(string slug)
         {
             var project = await _db.Projects.FindAsync(slug);
@@ -96,7 +96,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpDelete("{slug}")]
-        //[ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
+        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Delete(string slug)
         {
             var row = await _db.Projects.FindAsync(slug);
