@@ -33,17 +33,21 @@ namespace profileSiteBackEnd.Controllers
             if (cur is null)
             {
                 _db.Profiles.Add(p);
+                await _db.SaveChangesAsync();
+                return Ok(p);
             }
-            else
-            {
-                cur.Name = p.Name; cur.Title = p.Title; cur.Tagline = p.Tagline; cur.Summary = p.Summary;
-                cur.Location = p.Location; cur.Email = p.Email; cur.Github = p.Github; cur.Linkedin = p.Linkedin;
-                cur.Skills = new(p.Skills);
-                cur.Links.Clear();
-                foreach (var l in p.Links) cur.Links.Add(new Link { Label = l.Label, Url = l.Url });
-            }
+
+            cur.Name = p.Name; cur.Title = p.Title; cur.Tagline = p.Tagline; cur.Summary = p.Summary;
+            cur.Location = p.Location; cur.Email = p.Email; cur.Github = p.Github; cur.Linkedin = p.Linkedin;
+            // Profile.Skills is [NotMapped] and [JsonIgnore], so it never arrives
+            // on the request and copying it here achieved nothing. Skills are
+            // managed through SkillsController.
+            cur.Links.Clear();
+            foreach (var l in p.Links ?? []) cur.Links.Add(new Link { Label = l.Label, Url = l.Url });
+
             await _db.SaveChangesAsync();
-            return Ok(p);
+            // Return what was persisted rather than echoing the request body.
+            return Ok(cur);
         }
         #endregion
     }
