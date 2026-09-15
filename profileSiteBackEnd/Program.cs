@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.FileProviders;
+using System.Net;
 using System.Threading.RateLimiting;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,11 @@ using profileSiteBackEnd;
 using profileSiteBackEnd.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Self-hosted on Windows the app runs as a service, so that it survives reboot
+// without anyone logging in. This is a no-op when launched from a console or on
+// any non-Windows host, so the container build is unaffected.
+builder.Host.UseWindowsService(o => o.ServiceName = "ProfileSite");
 
 var isDev = builder.Environment.IsDevelopment();
 
@@ -131,15 +137,37 @@ builder.Services.AddCors(o =>
 // Trust the hosting platform's reverse proxy for the client IP and scheme.
 // Without this every request appears to come from the proxy, which would
 // collapse the per-IP rate limiters below into a single shared bucket.
-// KnownNetworks/KnownProxies are cleared because managed platforms (Fly,
-// Render, App Service) front the app from addresses we cannot enumerate.
-// This is only safe while the app is reachable exclusively through that proxy.
+//
+// Whoever the app trusts here can forge X-Forwarded-For and so evade those
+// rate limiters, which makes the trusted set worth naming explicitly. Set
+// ForwardedHeaders__KnownProxies__0 (and __1, ...) when the proxy has a fixed
+// address - self-hosting behind a loopback tunnel is the case that matters,
+// where 127.0.0.1 and ::1 are the only senders that can reach the app at all.
+// Left unset, the set is cleared and any sender is trusted, which is what
+// managed platforms (Fly, Render, App Service) require because they front the
+// app from addresses we cannot enumerate. That is only safe while the app is
+// reachable exclusively through that proxy.
+var knownProxies = builder.Configuration.GetSection("ForwardedHeaders:KnownProxies").Get<string[]>();
+
 builder.Services.Configure<ForwardedHeadersOptions>(o =>
 {
     o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
     o.ForwardLimit = 1;
-    o.KnownNetworks.Clear();
+    o.KnownIPNetworks.Clear();
     o.KnownProxies.Clear();
+
+    foreach (var proxy in knownProxies ?? Array.Empty<string>())
+    {
+        if (IPAddress.TryParse(proxy, out var address))
+        {
+            o.KnownProxies.Add(address);
+        }
+        else
+        {
+            throw new InvalidOperationException(
+                $"ForwardedHeaders:KnownProxies contains '{proxy}', which is not an IP address.");
+        }
+    }
 });
 
 //Rate limiting for contact form (prevent spam)
@@ -207,8 +235,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-app.UseCors("vite");
-
 app.Use(async (ctx, next) =>
 {
     ctx.Response.Headers.TryAdd("Referrer-Policy", "no-referrer");
@@ -217,10 +243,35 @@ app.Use(async (ctx, next) =>
     await next();
 });
 
-app.UseRateLimiter();
-
+// Static files must come before UseRouting, and UseRouting must be explicit.
+//
+// WebApplication inserts UseRouting at the very start of the pipeline if it is
+// never called, which puts endpoint selection ahead of every middleware here.
+// The SPA fallback below is a catch-all, so it gets selected for /assets/app.js
+// just as readily as for /projects - and StaticFileMiddleware deliberately does
+// nothing once an endpoint is already selected. Every asset then resolves to
+// index.html with content type text/html, the module script fails to parse, and
+// the site renders as a blank page while every status code is still 200.
 app.UseDefaultFiles();
-app.UseStaticFiles(); // Serve the built SPA from wwwroot
+
+// Be explicit about caching rather than letting the CDN pick a default by file
+// extension. Vite fingerprints everything under /assets by content, so those are
+// safe to cache forever - a change produces a new filename. index.html must not
+// be cached: it is the document that names those filenames, and a stale copy
+// points at assets that no longer exist, breaking the site after a deploy while
+// every response still returns 200.
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        var path = ctx.Context.Request.Path.Value ?? string.Empty;
+        var isFingerprinted = path.StartsWith("/assets/", StringComparison.OrdinalIgnoreCase);
+
+        ctx.Context.Response.Headers.CacheControl = isFingerprinted
+            ? "public,max-age=31536000,immutable"
+            : "no-cache";
+    }
+});
 
 // Uploaded images live outside wwwroot in production so that a deploy, which
 // replaces the application image, does not take the uploads with it.
@@ -234,6 +285,16 @@ if (!string.IsNullOrWhiteSpace(uploadsRoot))
         RequestPath = "/uploads"
     });
 }
+
+app.UseRouting();
+
+// CORS, the rate limiter, and authorization all read endpoint metadata, so each
+// has to sit after UseRouting. The rate limiter especially: the contact form's
+// limit is attached with RequireRateLimiting("contact") on the endpoint, and
+// running the middleware before endpoint selection leaves that policy unapplied
+// without any error to show for it.
+app.UseCors("vite");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -357,7 +418,14 @@ app.MapPost("/api/contact", async (IEmailService emailService, [FromBody] Contac
 // Excluding /api here rather than mapping a catch-all matters. A catch-all
 // matches every method, so it beats a real route whose path matches but whose
 // verb does not, turning every 405 in the API into a 404.
-app.MapFallbackToFile("{*path:regex(^(?!api/).*$)}", "index.html");
+// The fallback runs its own static-file middleware, so the no-cache header set
+// on the main pipeline does not reach it. Without this, /projects and every
+// other client-side route would serve a cacheable index.html even though / does
+// not - the same stale-document trap, reachable by a different path.
+app.MapFallbackToFile("{*path:regex(^(?!api/).*$)}", "index.html", new StaticFileOptions
+{
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl = "no-cache"
+});
 
 app.Run();
 
