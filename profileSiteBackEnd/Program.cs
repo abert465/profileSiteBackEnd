@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.FileProviders;
@@ -99,6 +100,19 @@ builder.Services.AddAntiforgery(o =>
     o.Cookie.SameSite = SameSiteMode.Lax;
 });
 
+// Data Protection signs the auth cookie, antiforgery tokens, and the passcode
+// gate cookie. Keys otherwise live in the container filesystem, which a deploy
+// replaces - signing out the admin and invalidating in-flight CSRF tokens on
+// every release. Keep them next to the database on the mounted volume.
+var keyRingPath = builder.Configuration["Storage:DataProtectionKeys"];
+if (!string.IsNullOrWhiteSpace(keyRingPath))
+{
+    Directory.CreateDirectory(keyRingPath);
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(keyRingPath))
+        .SetApplicationName("profileSiteBackEnd");
+}
+
 //Seeder for initial data
 builder.Services.AddScoped<DbSeeder>();
 
@@ -182,6 +196,18 @@ app.UseForwardedHeaders();
 
 if (!app.Environment.IsDevelopment())
 {
+    // Without this an unhandled exception returns a bare 500 with no logging.
+    app.UseExceptionHandler(errorApp => errorApp.Run(async ctx =>
+    {
+        ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        ctx.Response.ContentType = "application/problem+json";
+        await ctx.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Title = "An unexpected error occurred.",
+            Status = StatusCodes.Status500InternalServerError
+        });
+    }));
+
     app.UseHsts();
     app.UseHttpsRedirection();
 }
@@ -307,6 +333,10 @@ app.MapPost("/api/contact", async (IEmailService emailService, [FromBody] Contac
     
     if (req.Message.Length > 2000)
         return Results.BadRequest(new { error = "Message is too long (max 2000 characters)." });
+
+    // Subject was previously unbounded and flows straight into the mail header.
+    if (req.Subject is { Length: > 200 })
+        return Results.BadRequest(new { error = "Subject is too long (max 200 characters)." });
 
     // Basic email format validation
     if (!System.Text.RegularExpressions.Regex.IsMatch(req.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))

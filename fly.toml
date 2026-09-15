@@ -27,9 +27,16 @@ primary_region = "CHANGE-ME"
   ConnectionStrings__Default = "Data Source=/data/app.db"
   Storage__UploadsRoot = "/data/uploads"
 
+  # Signing keys for the auth cookie, antiforgery tokens, and the passcode gate.
+  # On the volume, so a deploy does not sign the admin out every release.
+  Storage__DataProtectionKeys = "/data/keys"
+
   # Same-origin deployment: the SPA is served by this app, so no cross-origin
-  # entry is required. Adding one here would widen the CORS policy.
+  # entry is needed. Both indices are overridden because appsettings.json lists
+  # two localhost origins for dev - setting only __0 would leave the https
+  # localhost entry live in production.
   Cors__AllowedOrigins__0 = "https://CHANGE-ME.fly.dev"
+  Cors__AllowedOrigins__1 = "https://CHANGE-ME.fly.dev"
 
 [[mounts]]
   source = "profilesite_data"

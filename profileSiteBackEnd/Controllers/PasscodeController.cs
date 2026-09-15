@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -12,6 +13,30 @@ public class PasscodeController : ControllerBase
     private readonly IConfiguration _cfg;
     private readonly IWebHostEnvironment _env;
     private readonly IAntiforgery _af;
+    private readonly IDataProtector _protector;
+
+    private const string AccessCookie = "case_access";
+
+    // The cookie carries a signed expiry rather than a constant. Checking only
+    // that the cookie exists would let any caller mint their own access, since
+    // a client controls which cookies it sends regardless of HttpOnly.
+    private static string BuildToken() =>
+        DateTimeOffset.UtcNow.AddHours(12).ToUnixTimeSeconds().ToString();
+
+    private bool TokenIsValid(string? protectedToken)
+    {
+        if (string.IsNullOrEmpty(protectedToken)) return false;
+        try
+        {
+            var expiresAt = long.Parse(_protector.Unprotect(protectedToken));
+            return DateTimeOffset.FromUnixTimeSeconds(expiresAt) > DateTimeOffset.UtcNow;
+        }
+        catch
+        {
+            // Tampered, truncated, or signed with a retired key.
+            return false;
+        }
+    }
 
     private void IssueXsrfCookie()
     {
@@ -27,9 +52,11 @@ public class PasscodeController : ControllerBase
     #endregion
 
     #region <ctor>
-    public PasscodeController(IConfiguration cfg, IWebHostEnvironment env, IAntiforgery af)
+    public PasscodeController(IConfiguration cfg, IWebHostEnvironment env, IAntiforgery af,
+        IDataProtectionProvider dataProtection)
     {
         _cfg = cfg; _env = env; _af = af;
+        _protector = dataProtection.CreateProtector("profileSiteBackEnd.PasscodeGate.v1");
     }
     #endregion
 
@@ -45,10 +72,13 @@ public class PasscodeController : ControllerBase
         var passcodeHash = _cfg["Private:PasscodeHash"];
         if (string.IsNullOrWhiteSpace(passcodeHash) || dto is null) return Unauthorized();
 
-        var ok = BCrypt.Net.BCrypt.Verify(dto.Code ?? string.Empty, passcodeHash);
+        bool ok;
+        try { ok = BCrypt.Net.BCrypt.Verify(dto.Code ?? string.Empty, passcodeHash); }
+        catch { return Unauthorized(); } // malformed hash must not surface as a 500
+
         if (!ok) return Unauthorized();
 
-        Response.Cookies.Append("case_access", "1", new CookieOptions
+        Response.Cookies.Append(AccessCookie, _protector.Protect(BuildToken()), new CookieOptions
         {
             HttpOnly = true,
             Secure = !_env.IsDevelopment(),
@@ -62,12 +92,12 @@ public class PasscodeController : ControllerBase
 
     [HttpGet("check")]
     public IActionResult Check() =>
-        Request.Cookies.ContainsKey("case_access") ? Ok(new { ok = true }) : Unauthorized();
+        TokenIsValid(Request.Cookies[AccessCookie]) ? Ok(new { ok = true }) : Unauthorized();
 
     [HttpPost("logout")]
     public IActionResult Logout()
     {
-        Response.Cookies.Delete("case_access");
+        Response.Cookies.Delete(AccessCookie);
         return Ok();
     }
     #endregion

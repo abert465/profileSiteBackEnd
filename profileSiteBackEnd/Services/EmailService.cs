@@ -36,7 +36,10 @@ namespace profileSiteBackEnd.Services
                 using var client = new SmtpClient(smtpHost, smtpPort)
                 {
                     Credentials = new NetworkCredential(smtpUser, smtpPass),
-                    EnableSsl = true
+                    EnableSsl = true,
+                    // Default is 100 seconds; an unresponsive SMTP host would hold
+                    // the contact request open for that long.
+                    Timeout = 15_000
                 };
 
                 var emailSubject = string.IsNullOrEmpty(subject) 
