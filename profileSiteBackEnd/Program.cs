@@ -142,6 +142,14 @@ builder.Services.AddRateLimiter(o =>
 
 var app = builder.Build();
 
+// Apply migrations and seed SampleData when enabled (see Seed:RunOnStartup in appsettings).
+if (builder.Configuration.GetValue<bool>("Seed:RunOnStartup"))
+{
+    using var seedScope = app.Services.CreateScope();
+    var seeder = seedScope.ServiceProvider.GetRequiredService<DbSeeder>();
+    await seeder.SeedAsync();
+}
+
 app.UseCors("vite");
 
 if (app.Environment.IsDevelopment())

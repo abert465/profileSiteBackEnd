@@ -15,7 +15,7 @@ namespace profileSiteBackEnd.Models
             Summary = "I’m a business-minded software developer with 6+ years building scalable .NET services and React/Vue apps in finance and legal tech. I turn complex requirements into clean, reliable systems—optimizing SQL, automating delivery with Azure DevOps, and partnering closely with product, QA, and infra to ship faster with less toil. Recent wins include cutting database latency ~40% and reducing manual case processing ~30% through workflow automation.",
             Location = "San Antonio, TX",
             Email = "acampos892@gmail.com",
-            Github = "https://github.com/albert465",
+            Github = "https://github.com/abert465",
             Linkedin = "https://www.linkedin.com/in/albert-campos/",
             Skills = new()
         {
