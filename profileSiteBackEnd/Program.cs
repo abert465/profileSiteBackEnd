@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using System.Text.Json.Serialization;
@@ -117,6 +118,20 @@ builder.Services.AddCors(o =>
     .AllowCredentials());
 });
 
+// Trust the hosting platform's reverse proxy for the client IP and scheme.
+// Without this every request appears to come from the proxy, which would
+// collapse the per-IP rate limiters below into a single shared bucket.
+// KnownNetworks/KnownProxies are cleared because managed platforms (Fly,
+// Render, App Service) front the app from addresses we cannot enumerate.
+// This is only safe while the app is reachable exclusively through that proxy.
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.ForwardLimit = 1;
+    o.KnownNetworks.Clear();
+    o.KnownProxies.Clear();
+});
+
 //Rate limiting for contact form (prevent spam)
 builder.Services.AddRateLimiter(o =>
 {
@@ -148,6 +163,15 @@ if (builder.Configuration.GetValue<bool>("Seed:RunOnStartup"))
     using var seedScope = app.Services.CreateScope();
     var seeder = seedScope.ServiceProvider.GetRequiredService<DbSeeder>();
     await seeder.SeedAsync();
+}
+
+// Must run before anything that reads the client IP or the request scheme.
+app.UseForwardedHeaders();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
 app.UseCors("vite");
@@ -279,10 +303,6 @@ app.MapPost("/api/contact", async (IEmailService emailService, [FromBody] Contac
 }).RequireRateLimiting("contact");
 
 // ===== Admin Auth (server-side session) =====
-
-// Accept any CORS preflight aimed at the API
-app.MapMethods("/api/{*path}", new[] { "OPTIONS" }, () => Results.Ok())
-   .WithDisplayName("CORS Preflight");
 
 //Block accidental GET to /login
 app.MapMethods("/api/admin/login", new[] { "GET", "HEAD" },
