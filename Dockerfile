@@ -13,7 +13,7 @@ COPY web/ ./
 RUN npm run build
 
 # ---- stage 2: build and publish the API ----
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Restore against the project file alone, for the same caching reason.
@@ -26,7 +26,7 @@ RUN dotnet publish profileSiteBackEnd/profileSiteBackEnd.csproj \
     -c Release -o /app/publish /p:UseAppHost=false
 
 # ---- stage 3: runtime ----
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 COPY --from=build /app/publish ./
