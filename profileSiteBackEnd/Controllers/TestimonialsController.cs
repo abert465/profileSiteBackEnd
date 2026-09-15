@@ -30,17 +30,11 @@ namespace profileSiteBackEnd.Controllers
             return Ok(t);
         }
 
-        [HttpPut("{i:int}")]
+        [HttpPut("{id:int}")]
         [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
-        public async Task<IActionResult> UpdateByIndex(int i, [FromBody] Testimonial t)
+        public async Task<IActionResult> Update(int id, [FromBody] Testimonial t)
         {
-            var ordered = await _db.Testimonials
-                                   .OrderBy(x => x.Order ?? int.MaxValue)
-                                   .ThenByDescending(x => x.Date ?? DateTime.MinValue)
-                                   .ToListAsync();
-            if (i < 0 || i >= ordered.Count) return NotFound();
-
-            var row = await _db.Testimonials.FindAsync(ordered[i].Id);
+            var row = await _db.Testimonials.FindAsync(id);
             if (row is null) return NotFound();
 
             row.Name = t.Name;
@@ -56,17 +50,14 @@ namespace profileSiteBackEnd.Controllers
             return Ok(row);
         }
 
-        [HttpDelete("{i:int}")]
+        [HttpDelete("{id:int}")]
         [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
-        public async Task<IActionResult> DeleteByIndex(int i)
+        public async Task<IActionResult> Delete(int id)
         {
-            var ordered = await _db.Testimonials
-                                   .OrderBy(x => x.Order ?? int.MaxValue)
-                                   .ThenByDescending(x => x.Date ?? DateTime.MinValue)
-                                   .ToListAsync();
-            if (i < 0 || i >= ordered.Count) return NotFound();
+            var row = await _db.Testimonials.FindAsync(id);
+            if (row is null) return NotFound();
 
-            _db.Testimonials.Remove(ordered[i]);
+            _db.Testimonials.Remove(row);
             await _db.SaveChangesAsync();
             return NoContent();
         }
