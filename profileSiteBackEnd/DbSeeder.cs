@@ -120,7 +120,8 @@ public class DbSeeder
         }
 
         // ---- Projects (keyed by Slug) ----
-        foreach (var p in SampleData.GetProjects())
+        var sampleProjects = SampleData.GetProjects();
+        foreach (var p in sampleProjects)
         {
             var existing = await _db.Projects.FindAsync([p.Slug], ct);
             if (existing is null)
@@ -138,6 +139,14 @@ public class DbSeeder
                 existing.Highlights  = new List<string>(p.Highlights);
             }
         }
+
+        // Remove rows whose slug is no longer in SampleData (e.g. a project pulled from the portfolio)
+        var sampleSlugs = sampleProjects.Select(p => p.Slug).ToHashSet();
+        var orphanProjects = await _db.Projects
+            .Where(p => !sampleSlugs.Contains(p.Slug))
+            .ToListAsync(ct);
+        if (orphanProjects.Count > 0)
+            _db.Projects.RemoveRange(orphanProjects);
 
         // ---- Posts (keyed by Slug) ----
         foreach (var p in SampleData.GetPosts())

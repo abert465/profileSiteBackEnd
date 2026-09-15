@@ -42,16 +42,6 @@ namespace profileSiteBackEnd.Models
     {
         new Project
         {
-            Slug = "phi-redactor",
-            Title = "PHI Redaction App",
-            Description = "C#/.NET service that identifies and redacts PHI from lab orders.",
-            Tech = new(){".NET 8", "Regex", "Azure"},
-            RepoUrl = null,
-            LiveUrl = null,
-            Highlights = new(){"Selective redaction by field","Batch file processing","Export sanitized outputs"}
-        },
-        new Project
-        {
             Slug = "legal-automation",
             Title = "Legal Automation Platform",
             Description = "Workflow engine for expunction processes with React front-end.",
