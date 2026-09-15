@@ -371,3 +371,12 @@ FodyWeavers.xsd
 # Local AI agent scratch directories
 .claude/
 .tokensave/
+
+# Self-host secrets (SMTP password, admin hash) - machine-local, never committed
+deploy/profilesite.env
+
+# SQLite backups taken before schema/content changes - local snapshots that
+# contain the admin password hash. The *.db rule above does not match these.
+*.db.bak*
+*.db-shm
+*.db-wal
