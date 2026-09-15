@@ -48,10 +48,32 @@ public class ProgramTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task AdminLoginGet_ReturnsMethodNotAllowed()
+    public async Task AdminLoginGet_IsRejected()
     {
         var client = _factory.CreateClient();
-        var response = await client.GetAsync("/api/admin/login");
-        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+
+        // Login is POST-only. This previously targeted /api/admin/login, which
+        // was never a real route - it passed only because of a hand-written 405
+        // handler for that fictional path.
+        var response = await client.GetAsync("/api/admin/auth/login");
+
+        Assert.False(response.IsSuccessStatusCode);
+    }
+
+    [Theory]
+    [InlineData("/api/nope")]
+    [InlineData("/api/admin/auth/login")]
+    public async Task ApiPathsNeverFallBackToTheSpaShell(string path)
+    {
+        var client = _factory.CreateClient();
+
+        // The SPA fallback serves index.html for client-side routes. If its
+        // route constraint stops excluding /api, unknown API paths would answer
+        // 200 with an HTML page instead of failing, which is far harder to spot
+        // than a 404.
+        var response = await client.GetAsync(path);
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.NotEqual("text/html", response.Content.Headers.ContentType?.MediaType);
     }
 }

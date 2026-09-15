@@ -116,11 +116,6 @@ if (!string.IsNullOrWhiteSpace(keyRingPath))
 //Seeder for initial data
 builder.Services.AddScoped<DbSeeder>();
 
-//Swagger + CORS
-// Swagger disabled due to file upload endpoint compatibility issues
-// builder.Services.AddEndpointsApiExplorer();
-// builder.Services.AddSwaggerGen();
-
 //CORS for local dev
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:5173" };
 
@@ -213,13 +208,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseCors("vite");
-
-if (app.Environment.IsDevelopment())
-{
-    // Swagger disabled due to file upload endpoint compatibility issues
-    // app.UseSwagger();
-    // app.UseSwaggerUI();
-}
 
 app.Use(async (ctx, next) =>
 {
@@ -362,19 +350,14 @@ app.MapPost("/api/contact", async (IEmailService emailService, [FromBody] Contac
     }
 }).RequireRateLimiting("contact");
 
-// ===== Admin Auth (server-side session) =====
-
-//Block accidental GET to /login
-app.MapMethods("/api/admin/login", new[] { "GET", "HEAD" },
-   () => Results.StatusCode(StatusCodes.Status405MethodNotAllowed));
-
-// An unmatched /api path is a missing endpoint, not a client-side route, so
-// it must 404 rather than fall through to the SPA shell below.
-app.Map("/api/{**rest}", () => Results.NotFound());
-
 // Client-side routes (/admin, /projects, ...) get index.html so the React
-// router can take over.
-app.MapFallbackToFile("index.html");
+// router can take over. The constraint keeps /api out of the fallback: an
+// unmatched API path is a missing endpoint, not a client-side route.
+//
+// Excluding /api here rather than mapping a catch-all matters. A catch-all
+// matches every method, so it beats a real route whose path matches but whose
+// verb does not, turning every 405 in the API into a 404.
+app.MapFallbackToFile("{*path:regex(^(?!api/).*$)}", "index.html");
 
 app.Run();
 
