@@ -17,6 +17,11 @@ primary_region = "CHANGE-ME"
   ASPNETCORE_ENVIRONMENT = "Production"
   ASPNETCORE_URLS = "http://+:8080"
 
+  # Without this ASP.NET cannot work out where to redirect to and silently
+  # skips UseHttpsRedirection ("Failed to determine the https port for
+  # redirect"). Fly also forces HTTPS at the edge; this closes the app-level gap.
+  ASPNETCORE_HTTPS_PORT = "443"
+
   # SQLite and uploaded images both live on the mounted volume so that
   # redeploying, which replaces the container image, does not discard them.
   ConnectionStrings__Default = "Data Source=/data/app.db"
