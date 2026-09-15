@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using profileSiteBackEnd.Models;
 using profileSiteBackEnd.Services;
-using System.Security.AccessControl;
 
 namespace profileSiteBackEnd.Controllers
 {
@@ -15,8 +14,11 @@ namespace profileSiteBackEnd.Controllers
     {
         #region <private>
         private readonly AppDbContext _db;
+        // Projecting to int? matters: FirstOrDefaultAsync over a non-nullable int
+        // yields 0 for an empty table, so the "no profile yet" checks below would
+        // never fire and skills would be written against ProfileId 0.
         private async Task<int?> GetProfileIdAsync() =>
-            await _db.Profiles.Select(p => (int)p.Id).FirstOrDefaultAsync();
+            await _db.Profiles.Select(p => (int?)p.Id).FirstOrDefaultAsync();
         #endregion
 
         #region <ctor>
