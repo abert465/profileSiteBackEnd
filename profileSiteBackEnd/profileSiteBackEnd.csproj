@@ -19,6 +19,10 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.8" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <!-- Pinned above the version EF Core 9.0.8 resolves (2.1.10), which carries
+         a vulnerable bundled SQLite: GHSA-2m69-gcr7-jv3q, affecting <= 2.1.11.
+         Staying on 2.1.x rather than 3.x to avoid a major-version jump. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.13" />
   </ItemGroup>
 
 </Project>

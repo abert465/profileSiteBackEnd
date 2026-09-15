@@ -20,7 +20,9 @@ namespace profileSiteBackEnd.Models
             Skills = new()
         {
             // Backend & Languages
-            "C#", ".NET 6–9", "ASP.NET Core", "Entity Framework", "Dapper", "LINQ", "T‑SQL", "PowerShell",
+            // Plain ASCII hyphen in "T-SQL": a non-breaking hyphen (U+2011) here
+            // looked identical on screen but seeded a second, duplicate chip.
+            "C#", ".NET 6-9", "ASP.NET Core", "Entity Framework", "Dapper", "LINQ", "T-SQL", "PowerShell",
             // Frontend
             "React", "Vue", "TypeScript", "JavaScript", "HTML5", "CSS3", "Bootstrap",
             // Cloud & DevOps
@@ -222,29 +224,11 @@ namespace profileSiteBackEnd.Models
         new Certification { Name = "Software Development Bootcamp", Issuer = "Austin Coding Academy", Issued = new DateTime(2016, 6, 1) }
     };
 
-        public static List<Testimonial> GetTestimonials() => new()
-    {
-        new Testimonial
-        {
-            Name = "Sarah Johnson",
-            Title = "Engineering Manager",
-            Company = "Easy Expunctions",
-            Content = "Albert consistently delivers maintainable, high-quality code and mentors teammates effectively. His work on our legal automation platform significantly reduced manual processing time.",
-            Date = new DateTime(2024, 11, 15),
-            IsVisible = true,
-            Order = 1
-        },
-        new Testimonial
-        {
-            Name = "Michael Chen",
-            Title = "Senior Developer",
-            Company = "IBC Bank",
-            Content = "Working with Albert was a great experience. He has strong technical skills and always takes time to ensure code quality and proper documentation.",
-            Date = new DateTime(2022, 5, 20),
-            IsVisible = true,
-            Order = 2
-        }
-    };
+        // Deliberately empty. This list previously held invented endorsements
+        // from people who do not exist, which would have been published on a
+        // site recruiters read. Real testimonials are entered through the admin
+        // panel; seeding must never manufacture them.
+        public static List<Testimonial> GetTestimonials() => new();
         #endregion
     }
     public class Profile

@@ -18,7 +18,23 @@ export default function Projects({ projects = [] }) {
             >
               <div className="relative rounded-2xl gradient-border p-[1px]">
                 <div className="rounded-2xl bg-white/80 p-5 shadow-sm dark:bg-gray-900/80 dark:border-gray-800">
-                  <div className="h-32 rounded-xl bg-gray-200 mb-4 dark:bg-gray-800" />
+                  {p.imageUrl ? (
+                    <img
+                      src={p.imageUrl}
+                      alt={`${p.title} screenshot`}
+                      loading="lazy"
+                      className="h-32 w-full rounded-xl object-cover mb-4 bg-gray-200 dark:bg-gray-800"
+                      onError={(e) => { e.currentTarget.style.display = 'none' }}
+                    />
+                  ) : (
+                    // No screenshot yet: show the initial rather than an empty
+                    // grey slab, which reads as a broken card.
+                    <div className="h-32 rounded-xl mb-4 flex items-center justify-center bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-400/10 dark:to-purple-400/10">
+                      <span className="text-3xl font-bold text-gray-400 dark:text-gray-600">
+                        {p.title?.charAt(0)}
+                      </span>
+                    </div>
+                  )}
                   <h3 className="font-semibold text-lg">{p.title}</h3>
                   <p className="text-gray-700 mt-1 dark:text-gray-300">{p.description}</p>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs">
