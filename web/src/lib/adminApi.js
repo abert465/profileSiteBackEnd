@@ -136,16 +136,19 @@ export const addEducationAdmin = (e) =>
     body: JSON.stringify(e),
   }).then(handle);
 
-export const updateEducationAdmin = (i, e) =>
-  fetch(`${prefix}/api/admin/education/${i}`, {
+export const getEducationAdmin = (id) =>
+  fetch(`${prefix}/api/admin/education/${id}`, { credentials: "include" }).then(handle);
+
+export const updateEducationAdmin = (id, e) =>
+  fetch(`${prefix}/api/admin/education/${id}`, {
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json", ...csrfHeader() },
     body: JSON.stringify(e),
   }).then(handle);
 
-export const deleteEducationAdmin = (i) =>
-  fetch(`${prefix}/api/admin/education/${i}`, {
+export const deleteEducationAdmin = (id) =>
+  fetch(`${prefix}/api/admin/education/${id}`, {
     method: "DELETE",
     credentials: "include",
     headers: { ...csrfHeader() },
@@ -164,16 +167,19 @@ export const addCertAdmin = (c) =>
     body: JSON.stringify(c),
   }).then(handle);
 
-export const updateCertAdmin = (i, c) =>
-  fetch(`${prefix}/api/admin/certifications/${i}`, {
+export const getCertAdmin = (id) =>
+  fetch(`${prefix}/api/admin/certifications/${id}`, { credentials: "include" }).then(handle);
+
+export const updateCertAdmin = (id, c) =>
+  fetch(`${prefix}/api/admin/certifications/${id}`, {
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json", ...csrfHeader() },
     body: JSON.stringify(c),
   }).then(handle);
 
-export const deleteCertAdmin = (i) =>
-  fetch(`${prefix}/api/admin/certifications/${i}`, {
+export const deleteCertAdmin = (id) =>
+  fetch(`${prefix}/api/admin/certifications/${id}`, {
     method: "DELETE",
     credentials: "include",
     headers: { ...csrfHeader() },

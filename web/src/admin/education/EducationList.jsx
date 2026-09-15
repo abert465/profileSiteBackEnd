@@ -15,10 +15,10 @@ export default function EducationList(){
     })()
   }, [])
 
-  async function remove(i){
+  async function remove(id){
     if (!confirm('Delete this education entry?')) return
-    await deleteEducationAdmin(i)
-    setRows(r => r.filter((_, idx) => idx !== i))
+    await deleteEducationAdmin(id)
+    setRows(r => r.filter(row => (row.id ?? row.Id) !== id))
   }
 
   return (
@@ -32,8 +32,10 @@ export default function EducationList(){
       {loading && <p className="mt-3 text-sm text-zinc-500">Loading…</p>}
 
       <ul className="mt-4 divide-y">
-        {rows.map((r, i) => (
-          <li key={`${r.school}-${r.degree}-${i}`} className="py-3 flex items-center justify-between">
+        {rows.map((r, i) => {
+          const id = r.id ?? r.Id
+          return (
+          <li key={id ?? `${r.school}-${r.degree}-${i}`} className="py-3 flex items-center justify-between">
             <div>
               <div className="font-medium">{r.degree} — {r.school}</div>
               <div className="text-sm text-gray-500">
@@ -41,11 +43,12 @@ export default function EducationList(){
               </div>
             </div>
             <div className="text-sm">
-              <Link to={`/admin/education/${i}`} className="underline mr-3">Edit</Link>
-              <button onClick={() => remove(i)} className="text-red-600">Delete</button>
+              <Link to={`/admin/education/${id}`} className="underline mr-3">Edit</Link>
+              <button onClick={() => remove(id)} className="text-red-600">Delete</button>
             </div>
           </li>
-        ))}
+          )
+        })}
         {!loading && rows.length === 0 && !err && (
           <li className="py-6 text-sm text-zinc-500">No education entries yet. Click “New”.</li>
         )}

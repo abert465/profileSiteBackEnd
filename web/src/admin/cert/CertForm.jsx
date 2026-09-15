@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { listCertsAdmin, addCertAdmin, updateCertAdmin } from '../../lib/adminApi'
+import { getCertAdmin, addCertAdmin, updateCertAdmin } from '../../lib/adminApi'
 
 const toInputDate = (d) => (d ? new Date(d).toISOString().slice(0,10) : '')
 
 export default function CertForm(){
-  const { i } = useParams()
+  const { id } = useParams()
   const nav = useNavigate()
-  const editing = i !== undefined
+  const editing = id !== undefined
 
   const [model, set] = useState({ name:'', issuer:'', issued:'', expires:'' })
   const [err, setErr] = useState('')
@@ -16,19 +16,18 @@ export default function CertForm(){
     if (!editing) return
     ;(async () => {
       try {
-        const all = await listCertsAdmin()
-        const row = all[Number(i)]
+        const row = await getCertAdmin(id)
         if (!row) { setErr('Not found'); return }
         set(row)
       } catch (e) { setErr(String(e.message || e)) }
     })()
-  }, [editing, i])
+  }, [editing, id])
 
   async function submit(e){
     e.preventDefault()
     setErr('')
     try {
-      if (editing) await updateCertAdmin(i, model)
+      if (editing) await updateCertAdmin(id, model)
       else await addCertAdmin(model)
       nav('/admin/certifications')
     } catch (ex) {

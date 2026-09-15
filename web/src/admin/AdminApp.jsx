@@ -48,10 +48,10 @@ export default function AdminApp() {
           <Route path="skills" element={<SkillsList />} />
           <Route path="education" element={<EducationList />} />
           <Route path="education/new" element={<EducationForm />} />
-          <Route path="education/:i" element={<EducationForm />} />
+          <Route path="education/:id" element={<EducationForm />} />
           <Route path="certifications" element={<CertsList />} />
           <Route path="certifications/new" element={<CertForm />} />
-          <Route path="certifications/:i" element={<CertForm />} />
+          <Route path="certifications/:id" element={<CertForm />} />
         </Route>
       </Route>
     </Routes>

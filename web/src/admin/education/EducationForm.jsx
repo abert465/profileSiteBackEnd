@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { listEducationAdmin, addEducationAdmin, updateEducationAdmin } from '../../lib/adminApi'
+import { getEducationAdmin, addEducationAdmin, updateEducationAdmin } from '../../lib/adminApi'
 import { toInputDate } from '../_date'
 
 export default function EducationForm(){
-  const { i } = useParams()
+  const { id } = useParams()
   const nav = useNavigate()
-  const editing = i !== undefined
+  const editing = id !== undefined
 
   const [model, set] = useState({
     school:'', degree:'', start:'', end:'', details:[]
@@ -17,21 +17,20 @@ export default function EducationForm(){
     if (!editing) return
     (async () => {
       try {
-        const all = await listEducationAdmin()
-        const row = all[Number(i)]
+        const row = await getEducationAdmin(id)
         if (!row) { setErr('Not found'); return }
         set(row)
       } catch (e) {
         setErr(String(e.message || e))
       }
     })()
-  }, [editing, i])
+  }, [editing, id])
 
   async function submit(e){
     e.preventDefault()
     setErr('')
     try {
-      if (editing) await updateEducationAdmin(i, model)
+      if (editing) await updateEducationAdmin(id, model)
       else await addEducationAdmin(model)
       nav('/admin/education')
     } catch (ex) {

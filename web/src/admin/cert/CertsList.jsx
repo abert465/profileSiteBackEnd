@@ -15,10 +15,10 @@ export default function CertsList(){
     })()
   }, [])
 
-  async function remove(i){
+  async function remove(id){
     if (!confirm('Delete this certification?')) return
-    await deleteCertAdmin(i)
-    setRows(r => r.filter((_, idx) => idx !== i))
+    await deleteCertAdmin(id)
+    setRows(r => r.filter(row => (row.id ?? row.Id) !== id))
   }
 
   const fmt = (d) => d ? new Date(d).toLocaleDateString() : '—'
@@ -54,24 +54,27 @@ export default function CertsList(){
                 </td>
               </tr>
             )}
-            {rows.map((r, i) => (
-              <tr key={`${r.name}-${r.issuer}-${i}`} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30">
+            {rows.map((r, i) => {
+              const id = r.id ?? r.Id
+              return (
+              <tr key={id ?? `${r.name}-${r.issuer}-${i}`} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30">
                 <td className="px-4 py-3 font-medium">{r.name || '—'}</td>
                 <td className="px-4 py-3">{r.issuer || '—'}</td>
                 <td className="px-4 py-3">{fmt(r.issued)}</td>
                 <td className="px-4 py-3">{fmt(r.expires)}</td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-3">
-                    <Link to={`/admin/certifications/${i}`} className="underline">
+                    <Link to={`/admin/certifications/${id}`} className="underline">
                       Edit
                     </Link>
-                    <button onClick={() => remove(i)} className="text-red-600">
+                    <button onClick={() => remove(id)} className="text-red-600">
                       Delete
                     </button>
                   </div>
                 </td>
               </tr>
-            ))}
+              )
+            })}
           </tbody>
         </table>
       </div>

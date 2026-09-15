@@ -21,28 +21,40 @@ namespace profileSiteBackEnd.Controllers
         #endregion
 
         #region <methods>
+        // Id breaks ties: two qualifications ending on the same date would
+        // otherwise have no defined order.
         [HttpGet]
         public Task<List<Education>> List() =>
-            _db.Educations.OrderByDescending(e => e.End).ToListAsync();
+            _db.Educations.OrderByDescending(e => e.End).ThenByDescending(e => e.Id).ToListAsync();
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var row = await _db.Educations.FindAsync(id);
+            return row is null ? NotFound() : Ok(row);
+        }
 
         [HttpPost]
         [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Create([FromBody] Education e)
         {
+            if (string.IsNullOrWhiteSpace(e.School) || string.IsNullOrWhiteSpace(e.Degree))
+                return BadRequest(new { error = "School and Degree are required." });
+
             _db.Educations.Add(e);
             await _db.SaveChangesAsync();
             return Ok(e);
         }
 
-        [HttpPut("{i:int}")]
+        [HttpPut("{id:int}")]
         [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
-        public async Task<IActionResult> UpdateByIndex(int i, [FromBody] Education e)
+        public async Task<IActionResult> Update(int id, [FromBody] Education e)
         {
-            var ordered = await _db.Educations.OrderByDescending(x => x.End).ToListAsync();
-            if (i < 0 || i >= ordered.Count) return NotFound();
-
-            var row = await _db.Educations.FindAsync(ordered[i].Id);
+            var row = await _db.Educations.FindAsync(id);
             if (row is null) return NotFound();
+
+            if (string.IsNullOrWhiteSpace(e.School) || string.IsNullOrWhiteSpace(e.Degree))
+                return BadRequest(new { error = "School and Degree are required." });
 
             row.School  = e.School;
             row.Degree  = e.Degree;
@@ -54,14 +66,14 @@ namespace profileSiteBackEnd.Controllers
             return Ok(row);
         }
 
-        [HttpDelete("{i:int}")]
+        [HttpDelete("{id:int}")]
         [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
-        public async Task<IActionResult> DeleteByIndex(int i)
+        public async Task<IActionResult> Delete(int id)
         {
-            var ordered = await _db.Educations.OrderByDescending(x => x.End).ToListAsync();
-            if (i < 0 || i >= ordered.Count) return NotFound();
+            var row = await _db.Educations.FindAsync(id);
+            if (row is null) return NotFound();
 
-            _db.Educations.Remove(ordered[i]);
+            _db.Educations.Remove(row);
             await _db.SaveChangesAsync();
             return NoContent();
         }
