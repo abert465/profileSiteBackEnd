@@ -83,7 +83,7 @@ namespace profileSiteBackEnd.Models
             Description = "Microservice for expunction processing with advanced SQL validation and rules automation.",
             Tech = new(){".NET", "SQL Server", "Microservices"},
             RepoUrl = null,
-            LiveUrl = null,
+            LiveUrl = "https://www.easyexpunctions.com/",
             Highlights = new(){
                 "Accelerated case processing by ~30%",
                 "Throughput >500 cases/month"
