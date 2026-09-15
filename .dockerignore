@@ -1,0 +1,19 @@
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/.vs
+.git
+.github
+.claude
+.tokensave
+.aider*
+
+# The local SQLite database must never ship inside the image; production uses
+# the mounted volume at /data.
+*.db
+*.db-shm
+*.db-wal
+
+# Tests are run in CI, not built into the runtime image.
+profileSiteBackEnd.Tests/

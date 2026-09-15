@@ -1,0 +1,52 @@
+# Fly.io deployment for the portfolio site (SPA + API in one container).
+#
+# Before the first deploy, set `app` to a name you own, then:
+#   fly volumes create profilesite_data --size 1 --region <your-region>
+#   fly secrets set Admin__PasswordHash='...' Email__SmtpUser='...' ...
+#   fly deploy
+#
+# Secrets must NOT be listed in [env] - Fly stores those in plain config.
+
+app = "CHANGE-ME"
+primary_region = "CHANGE-ME"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  ASPNETCORE_ENVIRONMENT = "Production"
+  ASPNETCORE_URLS = "http://+:8080"
+
+  # SQLite and uploaded images both live on the mounted volume so that
+  # redeploying, which replaces the container image, does not discard them.
+  ConnectionStrings__Default = "Data Source=/data/app.db"
+  Storage__UploadsRoot = "/data/uploads"
+
+  # Same-origin deployment: the SPA is served by this app, so no cross-origin
+  # entry is required. Adding one here would widen the CORS policy.
+  Cors__AllowedOrigins__0 = "https://CHANGE-ME.fly.dev"
+
+[[mounts]]
+  source = "profilesite_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_start_machines = true
+  # Suspending rather than stopping keeps the first request after idle fast.
+  auto_stop_machines = "suspend"
+  # Keep one machine warm: a recruiter following a link should not wait on a
+  # cold start.
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/api/health"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
