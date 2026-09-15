@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using profileSiteBackEnd.Models;
+using profileSiteBackEnd.Services;
 
 namespace profileSiteBackEnd.Controllers
 {
@@ -21,6 +22,7 @@ namespace profileSiteBackEnd.Controllers
                .ToListAsync();
 
         [HttpPost]
+        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> Create([FromBody] Testimonial t)
         {
             _db.Testimonials.Add(t);
@@ -29,6 +31,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpPut("{i:int}")]
+        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> UpdateByIndex(int i, [FromBody] Testimonial t)
         {
             var ordered = await _db.Testimonials
@@ -54,6 +57,7 @@ namespace profileSiteBackEnd.Controllers
         }
 
         [HttpDelete("{i:int}")]
+        [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
         public async Task<IActionResult> DeleteByIndex(int i)
         {
             var ordered = await _db.Testimonials
