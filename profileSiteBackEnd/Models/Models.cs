@@ -12,7 +12,14 @@ namespace profileSiteBackEnd.Models
             Name = "Albert Campos",
             Title = "Software Developer",
             Tagline = "Full‑stack .NET developer shipping systems for finance, legal tech, and municipal government.",
-            Summary = "Full-stack .NET developer with 6+ years building web applications and business systems for finance, legal tech, and municipal government. I ship end to end on C#, .NET 8/10, ASP.NET Core, and SQL Server, with React, Vue, and Blazor on the front end. Most of my work has been replacing manual process with automation — legal case workflows, deployment pipelines, operational reporting — while keeping the legacy systems they replace running in production.",
+            // Blank lines are paragraph breaks; About.jsx splits on them. The Hero
+            // tagline already states the role and the three industries, so this
+            // deliberately opens somewhere else instead of repeating it.
+            Summary =
+                "Most of what I build replaces a spreadsheet, a paper form, or something a person did by hand every Friday.\n\n" +
+                "Right now that's overtime and scheduling for police departments — Boston PD among them — in .NET 8, Blazor, and the T-SQL behind the reports people check every morning. Before that, an expunction pipeline that turned court filings from a manual slog into a workflow and cut manual case processing about 30%, and a platform migration off AWS onto Azure.\n\n" +
+                "That last one is most of the job, honestly. Rewrites are easy when nothing is live. Almost everything I've shipped ran beside the system it replaced until the day it didn't, and the win condition is that nobody using it ever noticed the seam. Six years of that across finance, legal tech, and government has made me careful about migrations, boring about data integrity, and quick at reading someone else's code.\n\n" +
+                "This site is the same idea at small scale — .NET 10 API, React SPA, one box, Cloudflare Tunnel in front. I broke it twice getting here. Currently open to full-stack .NET roles.",
             Location = "San Antonio, TX",
             Email = "acampos892@gmail.com",
             Github = "https://github.com/abert465",
