@@ -380,3 +380,7 @@ deploy/profilesite.env
 *.db.bak*
 *.db-shm
 *.db-wal
+
+# Pre-replacement copies of published assets, kept locally so a bad crop can
+# be undone. Git already has the previous version in history.
+deploy/asset-backups/
