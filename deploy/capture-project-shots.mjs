@@ -52,7 +52,11 @@ mkdirSync(outDir, { recursive: true });
 const targets = [
   { slug: 'police-overtime-scheduling', url: 'https://bostonot.extradutysolutions.com/account/login' },
   { slug: 'naas-nexus-work-orders',     url: 'https://nexus.naasllc.com/account/login' },
-  { slug: 'automated-expunction-engine', url: 'https://www.easyexpunctions.com/' },
+  // The application itself rather than the marketing site: the sign-in page
+  // shows the passwordless magic-link flow the card describes, and it is what
+  // an anonymous visitor sees at that URL. The card's Live button still points
+  // at www, which is the right public entry point for a consumer product.
+  { slug: 'automated-expunction-engine', url: 'https://app.easyexpunctions.com/login' },
   { slug: 'developer-portfolio-platform', url: 'https://tedko.dev' },
 ];
 
