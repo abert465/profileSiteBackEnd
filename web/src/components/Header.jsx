@@ -16,7 +16,7 @@ export default function Header({ profile }) {
             <a key={s} href={`#${s.toLowerCase()}`} className="hover:text-blue-600 transition-colors">{s}</a>
           ))}
           <div className="h-5 w-px bg-gray-200 dark:bg-gray-800" />
-          <a href="/resume.pdf" className="relative inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 hover:shadow dark:border-gray-800">
+          <a href="/resume.pdf" download type="application/pdf" className="relative inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 hover:shadow dark:border-gray-800">
             <FileDown className="h-4 w-4"/>Resume
           </a>
           <ThemeToggle />

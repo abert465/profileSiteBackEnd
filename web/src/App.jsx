@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { MotionConfig } from 'framer-motion'
 import Header from './components/Header'
 import Background from './components/Background'
 import Hero from './components/Hero'
@@ -36,20 +37,26 @@ export default function App(){
   }, [])
 
   return (
-    <div>
-      <Background />
-      <Header profile={profile} />
-      <Hero profile={profile} />
-      <About profile={profile} />
-      <Projects projects={projects} />
-      <Skills skills={profile?.skills} />
-      <Experience experience={experience} />
-      <Education education={education} />
-      <Certifications certifications={certifications} />
-      <Testimonials testimonials={testimonials} />
-      <Blog posts={posts} />
-      <Contact profile={profile} />
-      <Footer profile={profile} />
-    </div>
+    // reducedMotion="user" applies every component's motion props through the
+    // OS setting in one place: with "reduce" on, framer-motion drops the
+    // transform and layout animation and keeps the opacity fade, so the reveal
+    // sections still appear instead of staying at opacity 0.
+    <MotionConfig reducedMotion="user">
+      <div>
+        <Background />
+        <Header profile={profile} />
+        <Hero profile={profile} />
+        <About profile={profile} />
+        <Projects projects={projects} />
+        <Skills skills={profile?.skills} />
+        <Experience experience={experience} />
+        <Education education={education} />
+        <Certifications certifications={certifications} />
+        <Testimonials testimonials={testimonials} />
+        <Blog posts={posts} />
+        <Contact profile={profile} />
+        <Footer profile={profile} />
+      </div>
+    </MotionConfig>
   )
 }

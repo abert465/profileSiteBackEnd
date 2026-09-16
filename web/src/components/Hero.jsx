@@ -3,7 +3,13 @@ import { ArrowRight } from 'lucide-react'
 
 export default function Hero({ profile }) {
 
-  const imgSrc = profile?.photoURL || '/images/profile.webp'
+  // The bundled asset ships in two widths; an uploaded photoURL is a single
+  // file, so the srcset only applies when the default is in use.
+  const defaultPhoto = '/images/profile.webp'
+  const imgSrc = profile?.photoURL || defaultPhoto
+  const imgSrcSet = imgSrc === defaultPhoto
+    ? '/images/profile-480.webp 480w, /images/profile.webp 900w'
+    : undefined
 
   // Both conditions matter: the flag is the switch, and a blank note would
   // otherwise render an empty pill with a blinking dot and no text.
@@ -19,17 +25,24 @@ export default function Hero({ profile }) {
               search is a toggle rather than a deploy. */}
           {showAvailability && (
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+              {/* The ping runs forever, so it is the one animation on the page
+                  that keeps moving after the reveal settles. motion-reduce
+                  leaves the solid dot and drops the pulse. */}
               <span aria-hidden="true" className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75 motion-reduce:hidden" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
               {availability}
             </p>
           )}
+          {/* The two spans are read as one accessible name, so without the
+              separator it announces as "Albert CamposSoftware Developer". The
+              comma is hidden from sight and only exists for that reading. */}
           <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
             <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-indigo-600 bg-clip-text text-transparent">
               {profile?.name}
             </span>
+            <span className="sr-only">, </span>
             <span className="block text-gray-900 mt-2 dark:text-white">{profile?.title}</span>
           </h1>
           <p className="mt-4 text-lg text-gray-700 dark:text-gray-300">{profile?.tagline}</p>
@@ -37,7 +50,9 @@ export default function Hero({ profile }) {
             <a href="#projects" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow">
               View My Work <ArrowRight className="h-4 w-4"/>
             </a>
-            <a href="/resume.pdf" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-900">Download Resume</a>
+            {/* `download` keeps the button honest: without it the PDF opens in
+                the browser's viewer and the portfolio is gone from the tab. */}
+            <a href="/resume.pdf" download type="application/pdf" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-900">Download Resume</a>
           </div>
           {/* Profile.Skills is [JsonIgnore], so these cannot come from the
               profile payload and have to be stated here. Keep them matching the
@@ -62,6 +77,11 @@ export default function Hero({ profile }) {
           <div aria-hidden="true" className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-indigo-500/20 via-fuchsia-500/10 to-slate-800/20 blur-xl" />
           <img
             src={imgSrc}
+            srcSet={imgSrcSet}
+            // The frame is max-w-sm, so 384px once the two-column layout kicks
+            // in at md. Without this the browser assumes 100vw and pulls the
+            // 900w file onto phones, where the 480w one is already oversized.
+            sizes="(min-width: 768px) 384px, 100vw"
             alt={profile?.name ? `${profile.name}, headshot` : 'Profile photo'}
             width={900}
             height={900}
