@@ -157,8 +157,8 @@ namespace profileSiteBackEnd.Models
             RepoUrl = null,
             LiveUrl = null,
             Highlights = new(){
-                "Cut over in dependency order inside a maintenance window: database first, then the services the apps depended on, then the apps themselves",
-                "Cut hosting costs 20% by consolidating onto a shared App Service plan and shutting down AWS resources that were billing without being used",
+                "Cut over in dependency order inside a maintenance window — database, then dependent services, then the apps",
+                "Cut hosting costs 20% by consolidating onto a shared App Service plan and shutting down idle AWS resources",
                 "Kept Salesforce and external data provider integrations live through the move",
                 "Most rollbacks traced to configuration rather than code — endpoints and settings that did not follow the apps across"
             }
@@ -169,7 +169,7 @@ namespace profileSiteBackEnd.Models
             ImageUrl = "/uploads/projects/automated-expunction-engine.jpg",
             Slug = "automated-expunction-engine",
             Title = "Expunction Automation Platform",
-            Description = "Consumer legal platform that takes someone from \"what is on my record\" to a signed court petition: a .NET 8 layered API behind a React front end, covering intake, eligibility, court document generation, and the payment plan that funds the filing, with Salesforce as the system of record on the sales side.",
+            Description = "Consumer legal platform that takes someone from \"what is on my record\" to a signed court petition: a .NET 8 layered API behind a React front end, covering intake, eligibility, court document generation, and the payment plan that funds the filing. Passwordless sign-in throughout — SMS codes and emailed magic links.",
             Tech = new(){".NET 8", "React", "EF Core", "SQL Server", "Azure", "Stripe", "Salesforce API", "iText"},
             RepoUrl = null,
             LiveUrl = "https://www.easyexpunctions.com/",
@@ -180,10 +180,9 @@ namespace profileSiteBackEnd.Models
             // numbers now share one bullet so the card leads with what the
             // system does rather than with metrics.
             Highlights = new(){
-                "Court forms are data, not code: templates, field definitions, and table mappings live in SQL, so a new county's petition is a configuration change — the API hands the front end a field schema to render and stamps the finished PDF with iText",
-                "Document pipeline per offense, not per customer: versioned drafts, bulk generation across every charge in a case, e-signature on the completed expungement forms, and an archived snapshot of every field a customer submitted",
-                "Billing built for people who cannot pay a filing fee at once — one-time products, installment plans modeled as Stripe subscriptions, balance paydown, and webhook-driven fulfillment; documents unlock once an account crosses half paid",
-                "Sign-in paths built for a non-technical audience under stress: SMS codes, emailed magic links, and a support impersonation route, all issuing JWTs with server-side revocation",
+                "Court forms are data, not code — templates and field definitions live in SQL, so a new county's petition is a configuration change",
+                "Versioned drafts per offense, bulk generation across a whole case, and e-signature on the finished petitions",
+                "Installment plans modeled as Stripe subscriptions with balance paydown; documents unlock once an account crosses half paid",
                 "Accelerated case processing by ~30%, cut database latency about 40%, and carried throughput past 500 cases a month"
             }
         },
@@ -199,8 +198,7 @@ namespace profileSiteBackEnd.Models
             LiveUrl = "https://bostonot.extradutysolutions.com/",
             Highlights = new(){
                 "Sole developer: architecture, data layer, UI, SSO, and test suite",
-                "Recovered the business rules from the legacy system's training manual — no specification existed — then refined them through department testing",
-                "Modernized the clerk and supervisor experience without disturbing the surrounding paper and payroll processes",
+                "Recovered the business rules from the legacy system's training manual — no specification existed — then refined them in department testing",
                 "Single sign-on against the City of Boston OIDC tenant, with no self-registration path",
                 "Built to WCAG 2.1 AA, since a public-sector tool has to be usable by everyone on the shift"
             }
@@ -220,7 +218,8 @@ namespace profileSiteBackEnd.Models
             Highlights = new(){
                 "Budget engine rolls time entries into per-task actuals and flags overruns before they land",
                 "Hosted service promotes work orders to Active on their start date, no manual sweep",
-                "Role-scoped access across corporate, manager, and field crew, enforced per location"
+                "Role-scoped access across corporate, manager, and field crew, enforced per location",
+                "Public job postings API consumed by naasllc.com, so the careers page reads from the portal instead of a second source"
             }
         },
         new Project
@@ -236,7 +235,8 @@ namespace profileSiteBackEnd.Models
             Highlights = new(){
                 "Admin panel over the full content model, with BCrypt auth",
                 "Runs as a Windows service bound to loopback; no inbound port is open",
-                "SPA and API share an origin, so there is no CORS layer to configure"
+                "SPA and API share an origin, so there is no CORS layer to configure",
+                "Deploys verified by a headless-Chrome smoke test, because curl cannot tell a working SPA from one serving index.html for every asset"
             }
         },
         new Project
@@ -252,9 +252,9 @@ namespace profileSiteBackEnd.Models
             RepoUrl = null,
             LiveUrl = null,
             Highlights = new(){
-                "Four ways into a food log — photo estimation through the Gemini API, barcode lookup against Open Food Facts, OCR of nutrition labels with Tesseract, and search over an imported USDA dataset",
-                "OpenAPI spec and shared types sit in the same workspace as the API, so the mobile client and the server cannot drift apart quietly",
-                "JWT auth with token refresh handled in the client's HTTP layer, rate limiting and per-user authorization enforced server side",
+                "Four ways into a food log — photo estimation via Gemini, barcode lookup against Open Food Facts, label OCR with Tesseract, and USDA dataset search",
+                "OpenAPI spec and shared types live in the same workspace as the API, so client and server cannot drift apart quietly",
+                "JWT auth with token refresh in the client's HTTP layer; rate limiting and per-user authorization enforced server side",
                 "User-submitted foods carry a reputation score, so community data can be trusted without hand-moderating every entry"
             }
         }
