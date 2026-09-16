@@ -88,18 +88,22 @@ namespace profileSiteBackEnd.Models
             ImageUrl = "/uploads/projects/automated-expunction-engine.jpg",
             Slug = "automated-expunction-engine",
             Title = "Expunction Automation Platform",
-            Description = "Workflow engine and processing microservice for legal expunctions, with rules automation, SQL validation, and a React front end.",
-            Tech = new(){".NET", "React", "SQL Server", "Microservices"},
+            Description = "Consumer legal platform that takes someone from \"what is on my record\" to a signed court petition: a .NET 8 layered API behind a React front end, covering intake, eligibility, court document generation, and the payment plan that funds the filing, with Salesforce as the system of record on the sales side.",
+            Tech = new(){".NET 8", "React", "EF Core", "SQL Server", "Azure", "Stripe", "Salesforce API", "iText"},
             RepoUrl = null,
             LiveUrl = "https://www.easyexpunctions.com/",
             // Figures match the resume exactly. Two documents quoting different
             // numbers for the same work is a question you do not want to field.
             // Merged from the old legal-automation card, which described this
-            // same system and restated the 30% figure a second time.
+            // same system and restated the 30% figure a second time. The three
+            // numbers now share one bullet so the card leads with what the
+            // system does rather than with metrics.
             Highlights = new(){
-                "Accelerated case processing by ~30%",
-                "Cut database latency about 40%",
-                "Throughput >500 cases/month"
+                "Court forms are data, not code: templates, field definitions, and table mappings live in SQL, so a new county's petition is a configuration change — the API hands the front end a field schema to render and stamps the finished PDF with iText",
+                "Document pipeline per offense, not per customer: versioned drafts, bulk generation across every charge in a case, e-signature on the completed expungement forms, and an archived snapshot of every field a customer submitted",
+                "Billing built for people who cannot pay a filing fee at once — one-time products, installment plans modeled as Stripe subscriptions, balance paydown, and webhook-driven fulfillment; documents unlock once an account crosses half paid",
+                "Sign-in paths built for a non-technical audience under stress: SMS codes, emailed magic links, and a support impersonation route, all issuing JWTs with server-side revocation",
+                "Accelerated case processing by ~30%, cut database latency about 40%, and carried throughput past 500 cases a month"
             }
         },
         new Project
@@ -286,10 +290,24 @@ namespace profileSiteBackEnd.Models
         new Education
         {
             School = "Western Governors University",
-            Degree = "B.S. in Software Development (In Progress; Expected 2027)",
+            // WGU renamed this program from "Software Development" to "Software
+            // Engineering". The parenthetical keeps an older resume or LinkedIn
+            // entry reconcilable against this one.
+            Degree = "B.S. Software Engineering, formerly Software Development (In Progress; Expected 2027)",
             Start = new DateTime(2024, 1, 1),
             End = new DateTime(2027, 12, 1),
-            Details = new(){ "Focus: .NET, data structures, databases, SDLC" }
+            // Only ITIL Foundation is actually earned. The other four credentials
+            // are bundled into the program and are described as such, never as
+            // held. Nothing on this site should claim a certification that a
+            // recruiter could ask to see and not get.
+            Details = new(){
+                "39-course competency-based program: every course ends in a proctored exam or a performance task, so progress tracks demonstrated skill rather than seat time",
+                "Java-focused engineering core — advanced Java and Java frameworks, back-end programming, data structures and algorithms, software design and quality assurance, software security and testing",
+                "Full-stack coursework in JavaScript, UI/UX foundations, front-end development, and version control, plus AWS cloud development and AI coursework covering data preparation for AI systems",
+                "Math and systems foundations: calculus, linear algebra, discrete mathematics, applied probability and statistics, and operating systems",
+                "Capstone is a full delivery cycle — technical work proposal, implementation, and post-implementation report",
+                "Program includes certification vouchers for AWS Certified Developer – Associate, ITIL® 4 Foundation, and three WGU developer microcredentials; ITIL Foundation earned, the rest still ahead of me"
+            }
         }
     };
         public static List<Certification> GetCertifications() => new()
