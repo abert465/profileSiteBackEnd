@@ -72,11 +72,19 @@ public class DbSeeder
             curProfile.Email    = seedProfile.Email;
             curProfile.Github   = seedProfile.Github;
             curProfile.Linkedin = seedProfile.Linkedin;
-            // Reseeding resets the badge to the sample wording, same as every
-            // other scalar here. An availability note edited in the admin panel
-            // does not survive a seed run — that is what seeding means.
-            curProfile.AvailabilityNote    = seedProfile.AvailabilityNote;
-            curProfile.AvailabilityVisible = seedProfile.AvailabilityVisible;
+            // Availability is deliberately NOT copied here, unlike every other
+            // scalar above. It is seeded once on insert and owned by the admin
+            // panel afterwards — the same rule Projects already apply to
+            // ImageUrl, for the same reason: it is state someone sets through
+            // the UI, not copy that should be refreshed from source.
+            //
+            // The concrete failure this avoids: switch the badge off after
+            // landing a role, deploy any unrelated content change, and the seed
+            // run flips AvailabilityVisible back to true. The site would go back
+            // to advertising an active job search, silently, in front of the new
+            // employer. Reseeding must never be able to re-open that.
+            //
+            // Changing the wording after first seed is an admin-panel edit.
 
             // Replace owned Links (clear & re-add)
             curProfile.Links.Clear();
