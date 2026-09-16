@@ -11,6 +11,16 @@
     <Content Include="Properties\launchSettings.json" />
   </ItemGroup>
 
+  <!-- Seed images are committed so a development run has something to render,
+       where /uploads falls through to wwwroot. Production points
+       Storage:UploadsRoot at the data directory and serves wwwroot first, so
+       publishing these would shadow anything later uploaded through the admin
+       panel under the same name - and a deploy is specifically not meant to
+       carry uploads with it. Deploy copies them into the data directory once. -->
+  <ItemGroup>
+    <Content Update="wwwroot\uploads\**" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
