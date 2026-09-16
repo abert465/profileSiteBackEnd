@@ -244,6 +244,16 @@ public class DbSeeder
             }
         }
 
+        // Same orphan problem Projects and Experience already solve. EduKey
+        // includes Degree, so renaming a degree — WGU relabelling "Software
+        // Development" as "Software Engineering", for instance — reads as a new
+        // entry and would leave the old one behind, showing two degrees for one
+        // enrollment.
+        var sampleEduKeys = SampleData.GetEducation().Select(EduKey).ToHashSet();
+        var orphanEducation = eduAll.Where(e => !sampleEduKeys.Contains(EduKey(e))).ToList();
+        if (orphanEducation.Count > 0)
+            _db.Educations.RemoveRange(orphanEducation);
+
         // ---- Certifications ----
         var certAll = await _db.Certifications.ToListAsync(ct);
         var certIndex = certAll.ToDictionary(CertKey, c => c);
@@ -263,6 +273,17 @@ public class DbSeeder
             }
         }
 
+        // CertKey includes the issue date, so correcting a date or an issuer name
+        // would otherwise leave the stale certification on the site alongside the
+        // corrected one. An expired or misstated credential is worse than none.
+        var sampleCertKeys = SampleData.GetCertifications().Select(CertKey).ToHashSet();
+        var orphanCertifications = certAll.Where(c => !sampleCertKeys.Contains(CertKey(c))).ToList();
+        if (orphanCertifications.Count > 0)
+            _db.Certifications.RemoveRange(orphanCertifications);
+
+        // Testimonials deliberately get no orphan sweep: GetTestimonials() is
+        // empty by design and real entries come from the admin panel, so a sweep
+        // here would delete every genuine testimonial on each seed run.
         // ---- Testimonials ----
         string TestKey(Testimonial t) => $"{t.Name}|{t.Company}|{(t.Date?.ToString("yyyy-MM-dd") ?? "null")}";
         var testAll = await _db.Testimonials.ToListAsync(ct);
