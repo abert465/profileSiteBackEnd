@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  One entry, because the public site is a single document: main.jsx routes /* to
+  App, and every section is an anchor within it. Only /admin is a separate view,
+  and robots.txt disallows it.
+
+  No <lastmod>. The page's content is database rows edited through the admin
+  panel, not files in this repo, so any date written here would be a rebuild
+  date rather than a content date - and a lastmod that does not move when the
+  content does teaches crawlers to ignore it. The element is optional; omitting
+  it is better than publishing one that lies.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://tedko.dev/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>

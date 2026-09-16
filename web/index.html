@@ -29,17 +29,10 @@
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#0b1220" />
-     <!-- Prevent theme FOUC: set initial theme before CSS loads -->
-    <script>
-      (function() {
-        try {
-          const ls = localStorage.getItem('theme');
-          const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const isDark = ls ? ls === 'dark' : systemDark;
-          document.documentElement.classList.toggle('dark', isDark);
-        } catch (e) { /* no-op */ }
-      })();
-    </script>
+     <!-- Prevent theme FOUC: set initial theme before CSS loads. Kept in
+          /theme-init.js rather than inline so the CSP can stay script-src
+          'self' with no 'unsafe-inline' and no hash to keep in sync. -->
+    <script src="/theme-init.js"></script>
   </head>
    <body class="bg-gray-50 text-gray-900 antialiased selection:bg-blue-600/20 selection:text-blue-900 dark:bg-gray-950 dark:text-gray-100">
     <div id="root"></div>

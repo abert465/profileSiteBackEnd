@@ -171,6 +171,23 @@ builder.Services.Configure<ForwardedHeadersOptions>(o =>
     }
 });
 
+// HSTS. The framework default is 30 days with no includeSubDomains, which is
+// below what any preload list accepts and leaves a subdomain reachable over
+// plaintext. Only tedko.dev and www.tedko.dev exist, both served over HTTPS
+// through the Cloudflare tunnel, so includeSubDomains costs nothing here - it
+// would need revisiting before pointing an http-only host at a subdomain.
+//
+// Preload is a one-way door in the sense that removal takes months to
+// propagate, but .dev is already preloaded as a whole TLD: browsers refuse
+// plaintext for this hostname regardless. The header just makes the intent
+// explicit and satisfies hstspreload.org if the domain is ever submitted.
+builder.Services.AddHsts(o =>
+{
+    o.MaxAge = TimeSpan.FromDays(365);
+    o.IncludeSubDomains = true;
+    o.Preload = true;
+});
+
 //Rate limiting for contact form (prevent spam)
 builder.Services.AddRateLimiter(o =>
 {
@@ -236,11 +253,50 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+// Content-Security-Policy. Every directive below is deliberate; the notes are
+// what to check before loosening one.
+//
+//   default-src 'self'     everything not named explicitly is same-origin only.
+//   script-src  'self'     no 'unsafe-inline' and no hash, which holds only
+//                          while index.html has no inline <script>. The theme
+//                          bootstrap was moved to /theme-init.js for exactly
+//                          this reason - putting it back inline breaks the
+//                          theme silently, with only a console violation.
+//   style-src   'unsafe-inline'  framer-motion and React set element styles
+//                          through the CSSOM, which CSP does not govern, but
+//                          framer-motion also injects <style> elements for
+//                          layout animations. Dropping this needs the site
+//                          rendered with the policy on and the console clean,
+//                          not a reading of the source.
+//   img-src     https:     project and uploaded images may be hosted anywhere;
+//                          data: covers inlined SVG from lucide-react.
+//   connect-src 'self'     the front end only ever calls its own /api.
+//   frame-ancestors 'none' the modern form of the X-Frame-Options above, which
+//                          stays for older browsers that ignore this directive.
+//   object-src / base-uri / form-action  close the plugin, <base> rewrite, and
+//                          form-post-to-attacker holes that default-src alone
+//                          does not cover.
+//
+// Sent on every response, including API JSON, where it is inert but harmless.
+const string contentSecurityPolicy =
+    "default-src 'self'; " +
+    "script-src 'self'; " +
+    "style-src 'self' 'unsafe-inline'; " +
+    "img-src 'self' data: https:; " +
+    "font-src 'self' data:; " +
+    "connect-src 'self'; " +
+    "object-src 'none'; " +
+    "base-uri 'self'; " +
+    "form-action 'self'; " +
+    "frame-ancestors 'none'; " +
+    "upgrade-insecure-requests";
+
 app.Use(async (ctx, next) =>
 {
     ctx.Response.Headers.TryAdd("Referrer-Policy", "no-referrer");
     ctx.Response.Headers.TryAdd("X-Content-Type-Options", "nosniff");
     ctx.Response.Headers.TryAdd("X-Frame-Options", "DENY");
+    ctx.Response.Headers.TryAdd("Content-Security-Policy", contentSecurityPolicy);
     await next();
 });
 

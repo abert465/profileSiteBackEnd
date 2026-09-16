@@ -1,0 +1,9 @@
+# Served as a real file from wwwroot. Without it the SPA fallback answers
+# /robots.txt with index.html and a 200, so crawlers get a web page where a
+# directives file should be and never learn about the sitemap.
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://tedko.dev/sitemap.xml
