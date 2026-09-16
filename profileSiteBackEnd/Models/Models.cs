@@ -383,7 +383,7 @@ namespace profileSiteBackEnd.Models
             // recruiter could ask to see and not get.
             Details = new(){
                 "39-course competency-based program: every course ends in a proctored exam or a performance task, so progress tracks demonstrated skill rather than seat time",
-                "Java-focused engineering core — advanced Java and Java frameworks, back-end programming, data structures and algorithms, software design and quality assurance, software security and testing",
+                "C#/.NET-focused engineering core — advanced C#, .NET frameworks, back-end programming, data structures and algorithms, software design and quality assurance, software security and testing",
                 "Full-stack coursework in JavaScript, UI/UX foundations, front-end development, and version control, plus AWS cloud development and AI coursework covering data preparation for AI systems",
                 "Math and systems foundations: calculus, linear algebra, discrete mathematics, applied probability and statistics, and operating systems",
                 "Capstone is a full delivery cycle — technical work proposal, implementation, and post-implementation report",
