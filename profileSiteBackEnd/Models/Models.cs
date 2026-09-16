@@ -137,6 +137,25 @@ namespace profileSiteBackEnd.Models
                 "Runs as a Windows service bound to loopback; no inbound port is open",
                 "SPA and API share an origin, so there is no CORS layer to configure"
             }
+        },
+        new Project
+        {
+            SortOrder = 6,
+            // No screenshot yet and both repositories are private, so the card
+            // renders the initial-letter placeholder and shows no buttons.
+            ImageUrl = null,
+            Slug = "smartfit-nutrition-tracker",
+            Title = "SmartFit Nutrition Tracker",
+            Description = "In-progress nutrition and fitness tracker: a Fastify and TypeScript API over Postgres paired with a React Native client, where a meal can be logged by photo, by barcode, by scanning a nutrition label, or by search.",
+            Tech = new(){ "TypeScript", "Fastify", "Prisma", "PostgreSQL", "React Native", "Gemini API" },
+            RepoUrl = null,
+            LiveUrl = null,
+            Highlights = new(){
+                "Four ways into a food log — photo estimation through the Gemini API, barcode lookup against Open Food Facts, OCR of nutrition labels with Tesseract, and search over an imported USDA dataset",
+                "OpenAPI spec and shared types sit in the same workspace as the API, so the mobile client and the server cannot drift apart quietly",
+                "JWT auth with token refresh handled in the client's HTTP layer, rate limiting and per-user authorization enforced server side",
+                "User-submitted foods carry a reputation score, so community data can be trusted without hand-moderating every entry"
+            }
         }
     };
 
