@@ -6,7 +6,7 @@ export default function ProjectForm(){
   const { slug } = useParams()
   const nav = useNavigate()
   const editing = Boolean(slug)
-  const [model, setModel] = useState({ title:'', description:'', slug:'', tech:[], repoUrl:'', liveUrl:'', highlights:[] })
+  const [model, setModel] = useState({ title:'', description:'', slug:'', tech:[], repoUrl:'', liveUrl:'', highlights:[], sortOrder:0 })
   const [err, setErr] = useState('')
 
   useEffect(() => {
@@ -37,6 +37,11 @@ export default function ProjectForm(){
       <input className="w-full border rounded p-3" placeholder="Repo URL" value={model.repoUrl||''} onChange={e=>setModel({ ...model, repoUrl:e.target.value })}/>
       <input className="w-full border rounded p-3" placeholder="Live URL" value={model.liveUrl||''} onChange={e=>setModel({ ...model, liveUrl:e.target.value })}/>
       <input className="w-full border rounded p-3" placeholder="Highlights (comma-separated)" value={(model.highlights||[]).join(', ')} onChange={e=>setModel({ ...model, highlights:e.target.value.split(',').map(s=>s.trim()).filter(Boolean) })}/>
+      <label className="block">
+        <span className="text-sm text-gray-600">Sort order (lowest shows first)</span>
+        <input type="number" className="w-full border rounded p-3 mt-1" placeholder="Sort order" value={model.sortOrder ?? 0}
+               onChange={e=>setModel({ ...model, sortOrder: e.target.value === '' ? 0 : Number(e.target.value) })}/>
+      </label>
       <button className="px-5 py-2.5 rounded bg-blue-600 text-white">Save</button>
       {err && <p className="text-red-600">{err}</p>}
     </form>

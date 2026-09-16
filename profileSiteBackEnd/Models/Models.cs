@@ -44,57 +44,81 @@ namespace profileSiteBackEnd.Models
     {
         new Project
         {
-            Slug = "legal-automation",
-            Title = "Legal Automation Platform",
-            Description = "Workflow engine for expunction processes with React front-end.",
-            Tech = new(){".NET", "React", "SQL Server"},
-            RepoUrl = null,
-            LiveUrl = null,
-            // Figures match the resume exactly. Two documents quoting different
-            // numbers for the same work is a question you do not want to field.
-            Highlights = new(){"Cut manual case processing roughly 30%","Cut database latency about 40%"}
-        },
-         new Project
-        {
-            Slug = "ai-legal-assistant-bot",
-            Title = "AI Legal Assistant Bot",
-            Description = "Azure Bot chatbot to automate FAQs and reduce attorney workload.",
-            Tech = new(){"Azure Bot Service", ".NET", "Azure Functions"},
-            RepoUrl = null,
-            LiveUrl = null,
-            Highlights = new(){
-                "Handles routine client FAQs end to end",
-                "Returned 15–20 hours per week to legal staff"
-            }
-        },
-        new Project
-        {
+            SortOrder = 4,
+            ImageUrl = "/uploads/projects/enterprise-cloud-migration.svg",
             Slug = "enterprise-cloud-migration",
-            Title = "Enterprise Cloud Migration",
-            Description = "Migration of IIS‑hosted apps from AWS to Azure App Services.",
-            Tech = new(){"IIS", "Azure App Services", "CI/CD"},
+            Title = "AWS to Azure Platform Migration",
+            Description = "Moved two .NET applications — one consumer facing, one business facing — off self‑managed IIS on AWS onto Azure App Services across two months, carrying Salesforce and third‑party data provider integrations with them.",
+            Tech = new(){"IIS", "AWS", "Azure App Services", "Salesforce API", "CI/CD"},
             RepoUrl = null,
             LiveUrl = null,
             Highlights = new(){
-                "20% hosting cost savings",
-                "Zero‑downtime deploys via pipelines"
+                "Cut over in dependency order inside a maintenance window: database first, then the services the apps depended on, then the apps themselves",
+                "Cut hosting costs 20% by consolidating onto a shared App Service plan and shutting down AWS resources that were billing without being used",
+                "Kept Salesforce and external data provider integrations live through the move",
+                "Most rollbacks traced to configuration rather than code — endpoints and settings that did not follow the apps across"
             }
         },
         new Project
         {
+            SortOrder = 2,
+            ImageUrl = "/uploads/projects/automated-expunction-engine.jpg",
             Slug = "automated-expunction-engine",
-            Title = "Automated Expunction Engine",
-            Description = "Microservice for expunction processing with advanced SQL validation and rules automation.",
-            Tech = new(){".NET", "SQL Server", "Microservices"},
+            Title = "Expunction Automation Platform",
+            Description = "Workflow engine and processing microservice for legal expunctions, with rules automation, SQL validation, and a React front end.",
+            Tech = new(){".NET", "React", "SQL Server", "Microservices"},
             RepoUrl = null,
             LiveUrl = "https://www.easyexpunctions.com/",
+            // Figures match the resume exactly. Two documents quoting different
+            // numbers for the same work is a question you do not want to field.
+            // Merged from the old legal-automation card, which described this
+            // same system and restated the 30% figure a second time.
             Highlights = new(){
                 "Accelerated case processing by ~30%",
+                "Cut database latency about 40%",
                 "Throughput >500 cases/month"
             }
         },
         new Project
         {
+            SortOrder = 1,
+            ImageUrl = "/uploads/projects/police-overtime-scheduling.jpg",
+            Slug = "police-overtime-scheduling",
+            Title = "Police Overtime Scheduling Portal",
+            Description = "Blazor Server replacement for the Boston Police Department's legacy \"Blue Note\" overtime workflow: request intake, hours-based assignment and call-in ordering, and the printed lists the department runs on. Live link is the sign-in page — the portal is department staff only.",
+            Tech = new(){ ".NET 8", "Blazor Server", "SQL Server", "OpenID Connect SSO", "Clean Architecture" },
+            RepoUrl = null,
+            LiveUrl = "https://bostonot.extradutysolutions.com/",
+            Highlights = new(){
+                "Sole developer: architecture, data layer, UI, SSO, and test suite",
+                "Recovered the business rules from the legacy system's training manual — no specification existed — then refined them through department testing",
+                "Modernized the clerk and supervisor experience without disturbing the surrounding paper and payroll processes",
+                "Single sign-on against the City of Boston OIDC tenant, with no self-registration path",
+                "Built to WCAG 2.1 AA, since a public-sector tool has to be usable by everyone on the shift"
+            }
+        },
+        new Project
+        {
+            SortOrder = 3,
+            ImageUrl = "/uploads/projects/naas-nexus-work-orders.jpg",
+            Slug = "naas-nexus-work-orders",
+            Title = "Aviation MRO Work Order Platform",
+            Description = "Blazor Server operations portal in production for an aircraft fuel tank MRO: work order lifecycle, labor budgets, crew scheduling, and a public job postings API consumed by naasllc.com. The live link is the sign-in page — the portal itself is staff-only.",
+            Tech = new(){ ".NET 9", "Blazor Server", "ASP.NET Identity", "JWT", "EF Core", "SQL Server" },
+            RepoUrl = null,
+            // Links to a login wall by design. The card says so up front, since the
+            // button just reads "Live" and an unexplained gate looks broken.
+            LiveUrl = "https://nexus.naasllc.com/",
+            Highlights = new(){
+                "Budget engine rolls time entries into per-task actuals and flags overruns before they land",
+                "Hosted service promotes work orders to Active on their start date, no manual sweep",
+                "Role-scoped access across corporate, manager, and field crew, enforced per location"
+            }
+        },
+        new Project
+        {
+            SortOrder = 5,
+            ImageUrl = "/uploads/projects/developer-portfolio-platform.jpg",
             Slug = "developer-portfolio-platform",
             Title = "Developer Portfolio Platform",
             Description = "This site: a .NET 10 API with EF Core and SQLite behind a React SPA served same‑origin from wwwroot, self‑hosted and published through a Cloudflare Tunnel.",
@@ -273,6 +297,10 @@ namespace profileSiteBackEnd.Models
         public string? LiveUrl { get; set; }
         public List<string> Highlights { get; set; } = new();
         public string? ImageUrl { get; set; }
+        // Display order, lowest first. Without this the API fell back to sorting
+        // by Title, which buried the strongest work under whatever happened to
+        // start with an early letter.
+        public int SortOrder { get; set; }
     }
 
     public class Post

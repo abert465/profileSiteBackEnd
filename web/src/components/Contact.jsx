@@ -20,11 +20,13 @@ export default function Contact({ profile }) {
 
   const field = "w-full border rounded-lg p-3 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100 placeholder:dark:text-gray-500"
 
-  // Resolve profile links with sensible fallbacks
+  // Resolve profile links with sensible fallbacks. The GitHub handle is
+  // "abert465" - no second l. It reads like a typo and has been "corrected" into
+  // a 404 more than once; leave it alone.
   const email = profile?.email || 'acampos892@gmail.com'
   const gh = profile?.github
     || profile?.links?.find(l => (l.label||'').toLowerCase().includes('github'))?.url
-    || 'https://github.com/albert465'
+    || 'https://github.com/abert465'
   const li = profile?.linkedin
     || profile?.links?.find(l => (l.label||'').toLowerCase().includes('linked'))?.url
     || 'https://www.linkedin.com/in/albert-campos/'

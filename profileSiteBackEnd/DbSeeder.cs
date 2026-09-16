@@ -137,6 +137,14 @@ public class DbSeeder
                 existing.RepoUrl     = p.RepoUrl;
                 existing.LiveUrl     = p.LiveUrl;
                 existing.Highlights  = new List<string>(p.Highlights);
+                existing.SortOrder   = p.SortOrder;
+
+                // ImageUrl is the one field the admin panel owns: it is set by
+                // uploading a file, not by editing text. Seed it when the row has
+                // nothing, so a fresh database still renders, but never overwrite
+                // an upload someone made through the panel.
+                if (string.IsNullOrWhiteSpace(existing.ImageUrl))
+                    existing.ImageUrl = p.ImageUrl;
             }
         }
 

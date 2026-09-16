@@ -26,8 +26,10 @@ namespace profileSiteBackEnd.Controllers
 
         #region <actions>
         [HttpGet]
+        // Title is the tiebreak only. Ordering a portfolio alphabetically lets the
+        // alphabet decide which work a visitor sees first.
         public Task<List<Project>> List() =>
-       _db.Projects.OrderBy(p => p.Title).ToListAsync();
+       _db.Projects.OrderBy(p => p.SortOrder).ThenBy(p => p.Title).ToListAsync();
 
         [HttpPost]
         [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]

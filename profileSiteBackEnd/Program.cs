@@ -336,9 +336,13 @@ app.MapGet("/api/profile", async (AppDbContext db) =>
     });
 });
 
+// Explicit order: this previously returned whatever order the database handed
+// back, which put the strongest work wherever insertion happened to leave it.
 app.MapGet("/api/projects", async (AppDbContext db) =>
     await db.Projects
     .AsNoTracking()
+    .OrderBy(p => p.SortOrder)
+    .ThenBy(p => p.Title)
     .ToListAsync());
 
 app.MapGet("/api/experience", async (AppDbContext db) =>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 288" width="720" height="288" role="img" aria-labelledby="title desc">
+  <title id="title">AWS to Azure platform migration</title>
+  <desc id="desc">Two .NET applications moved from self-managed IIS on AWS onto a shared Azure App Service plan, cut over in dependency order: database, then dependent services, then the applications.</desc>
+
+  <!-- Card images render at 128px tall, so this is built to survive being small:
+       few words, heavy weights, high contrast. Detail nobody can read at card
+       scale is detail not worth drawing. -->
+
+  <rect width="720" height="288" fill="#F8FAFC"/>
+
+  <!-- source: AWS -->
+  <rect x="40" y="52" width="230" height="130" rx="14" fill="#FFF7ED" stroke="#FDBA74" stroke-width="2"/>
+  <text x="155" y="92" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="30" font-weight="700" fill="#B45309">AWS</text>
+  <text x="155" y="124" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="17" fill="#7C2D12">self-managed IIS</text>
+  <text x="155" y="152" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="17" fill="#7C2D12">idle spend</text>
+
+  <!-- transition -->
+  <path d="M288 117 L424 117" stroke="#64748B" stroke-width="4" stroke-linecap="round"/>
+  <path d="M424 117 l-16 -11 v22 z" fill="#64748B"/>
+
+  <!-- target: Azure -->
+  <rect x="450" y="52" width="230" height="130" rx="14" fill="#EFF6FF" stroke="#93C5FD" stroke-width="2"/>
+  <text x="565" y="92" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="30" font-weight="700" fill="#1D4ED8">Azure</text>
+  <text x="565" y="124" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="17" fill="#1E3A8A">shared App Service</text>
+  <text x="565" y="152" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="17" fill="#1E3A8A">plan</text>
+
+  <!-- cutover order, the part worth remembering -->
+  <text x="360" y="222" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="19" font-weight="600" fill="#0F172A">database → services → apps</text>
+  <text x="360" y="252" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="17" fill="#475569">2 apps · 2 months · 20% lower hosting cost</text>
+</svg>
