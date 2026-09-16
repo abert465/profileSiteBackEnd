@@ -331,6 +331,10 @@ app.MapGet("/api/profile", async (AppDbContext db) =>
         email = p.Email,
         github = p.Github,
         linkedin = p.Linkedin,
+        // This projection is hand-written, so a new Profile column is invisible
+        // to the front end until it is listed here.
+        availabilityNote = p.AvailabilityNote,
+        availabilityVisible = p.AvailabilityVisible,
         skills,
         links = p.Links
     });

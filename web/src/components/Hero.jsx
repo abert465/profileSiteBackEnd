@@ -5,10 +5,27 @@ export default function Hero({ profile }) {
 
   const imgSrc = profile?.photoURL || '/images/profile.webp'
 
+  // Both conditions matter: the flag is the switch, and a blank note would
+  // otherwise render an empty pill with a blinking dot and no text.
+  const availability = profile?.availabilityNote?.trim()
+  const showAvailability = Boolean(profile?.availabilityVisible && availability)
+
   return (
     <section id="home" className="relative">
       <div className="max-w-6xl mx-auto px-4 py-20 grid md:grid-cols-2 gap-10 items-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          {/* Availability badge, driven by Profile.AvailabilityNote /
+              AvailabilityVisible. Editable from /admin/profile, so ending the
+              search is a toggle rather than a deploy. */}
+          {showAvailability && (
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+              <span aria-hidden="true" className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              {availability}
+            </p>
+          )}
           <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
             <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-indigo-600 bg-clip-text text-transparent">
               {profile?.name}

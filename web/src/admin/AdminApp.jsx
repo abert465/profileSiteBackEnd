@@ -5,6 +5,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import AdminLayout from "./AdminLayout";
 import Login from "/src/admin/Login";
 import Dashboard from "/src/dashboard/Dashboard.jsx";
+import ProfileForm from "/src/admin/profile/ProfileForm.jsx";
 import ProjectsList from "/src/admin/projects/ProjectsList.jsx";
 import ProjectForm from "/src/admin/projects/ProjectForm.jsx";
 import SkillsList from "/src/admin/skills/SkillList.jsx";
@@ -39,6 +40,8 @@ export default function AdminApp() {
       <Route element={<ProtectedRoute authed={authed} />}>
         <Route element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
+          {/* Single row, so this edits in place — no list or /new route. */}
+          <Route path="profile" element={<ProfileForm />} />
           <Route path="projects" element={<ProjectsList />} />
           <Route path="projects/new" element={<ProjectForm />} />
           <Route path="projects/:slug" element={<ProjectForm />} />

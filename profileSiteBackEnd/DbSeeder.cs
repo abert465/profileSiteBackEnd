@@ -72,6 +72,11 @@ public class DbSeeder
             curProfile.Email    = seedProfile.Email;
             curProfile.Github   = seedProfile.Github;
             curProfile.Linkedin = seedProfile.Linkedin;
+            // Reseeding resets the badge to the sample wording, same as every
+            // other scalar here. An availability note edited in the admin panel
+            // does not survive a seed run — that is what seeding means.
+            curProfile.AvailabilityNote    = seedProfile.AvailabilityNote;
+            curProfile.AvailabilityVisible = seedProfile.AvailabilityVisible;
 
             // Replace owned Links (clear & re-add)
             curProfile.Links.Clear();

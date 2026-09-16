@@ -35,6 +35,20 @@ export const logout = () =>
     credentials: "include",
   }).then(handle);
 
+// Profile (admin). Single row, so no id in the path. PUT replaces every scalar
+// and rebuilds Links from the request body — send the whole object back, not a
+// patch, or the omitted fields are cleared.
+export const getProfileAdmin = () =>
+  fetch(`${prefix}/api/admin/profile`, { credentials: "include" }).then(handle);
+
+export const updateProfileAdmin = (p) =>
+  fetch(`${prefix}/api/admin/profile`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeader() },
+    body: JSON.stringify(p),
+  }).then(handle);
+
 // Projects (admin)
 export const listProjects = () =>
   fetch(`${prefix}/api/admin/projects`, { credentials: "include" }).then(

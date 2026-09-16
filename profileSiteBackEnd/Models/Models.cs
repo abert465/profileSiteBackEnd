@@ -11,19 +11,35 @@ namespace profileSiteBackEnd.Models
         {
             Name = "Albert Campos",
             Title = "Software Developer",
-            Tagline = "Full‑stack .NET developer shipping systems for finance, legal tech, and municipal government.",
+            // Plain ASCII hyphen and a real em dash. The old tagline used U+2011
+            // non-breaking hyphens, the same character that seeded a duplicate
+            // skill chip further down this file.
+            //
+            // This leads with the through-line rather than the job category:
+            // every project here replaces something that was being done by hand,
+            // and "full-stack .NET developer" is the one claim every competing
+            // portfolio also makes. The three industries stay, but as concrete
+            // nouns a reader can picture.
+            Tagline = "Six years replacing manual processes with .NET systems people use every day — court filings, police overtime, bank operations.",
             // Blank lines are paragraph breaks; About.jsx splits on them. The Hero
-            // tagline already states the role and the three industries, so this
-            // deliberately opens somewhere else instead of repeating it.
+            // tagline covers the through-line and the three domains, so this
+            // deliberately opens somewhere else instead of repeating it. The
+            // "open to roles" line that used to close this summary now lives in
+            // the Hero badge, where someone skimming will actually see it.
             Summary =
                 "Most of what I build replaces a spreadsheet, a paper form, or something a person did by hand every Friday.\n\n" +
                 "Right now that's overtime and scheduling for police departments — Boston PD among them — in .NET 8, Blazor, and the T-SQL behind the reports people check every morning. Before that, an expunction pipeline that turned court filings from a manual slog into a workflow and cut manual case processing about 30%, and a platform migration off AWS onto Azure.\n\n" +
                 "That last one is most of the job, honestly. Rewrites are easy when nothing is live. Almost everything I've shipped ran beside the system it replaced until the day it didn't, and the win condition is that nobody using it ever noticed the seam. Six years of that across finance, legal tech, and government has made me careful about migrations, boring about data integrity, and quick at reading someone else's code.\n\n" +
-                "This site is the same idea at small scale — .NET 10 API, React SPA, one box, Cloudflare Tunnel in front. I broke it twice getting here. Currently open to full-stack .NET roles.",
+                "This site is the same idea at small scale — .NET 10 API, React SPA, one box, Cloudflare Tunnel in front. I broke it twice getting here.",
             Location = "San Antonio, TX",
             Email = "acampos892@gmail.com",
             Github = "https://github.com/abert465",
             Linkedin = "https://www.linkedin.com/in/albert-campos/",
+            // The Hero badge. This is the one line on the site with a shelf life,
+            // so it is editable from the admin panel — taking it down is a toggle,
+            // not a deploy.
+            AvailabilityNote = "Open to full-stack .NET roles",
+            AvailabilityVisible = true,
             Skills = new()
         {
             // Backend & Languages
@@ -301,6 +317,12 @@ namespace profileSiteBackEnd.Models
         public string? Email { get; set; }
         public string? Github { get; set; }
         public string? Linkedin { get; set; }
+        // Drives the Hero availability badge. Two fields rather than one string
+        // that goes null to hide it: clearing the flag takes the badge down
+        // without destroying the wording, so the note survives until the next
+        // search instead of being retyped.
+        public string? AvailabilityNote { get; set; }
+        public bool AvailabilityVisible { get; set; }
         [NotMapped]
         [JsonIgnore]
         public List<string> Skills { get; set; } = new();

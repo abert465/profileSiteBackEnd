@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom'
 export default function AdminLayout(){
   const items = [
   ['Dashboard','/admin'],
-  // ['Profile','/admin/profile'],
+  ['Profile','/admin/profile'],
   ['Projects','/admin/projects'],
   ['Experience','/admin/experience'],
   ['Education','/admin/education'],

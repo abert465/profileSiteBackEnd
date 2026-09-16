@@ -39,6 +39,7 @@ namespace profileSiteBackEnd.Controllers
 
             cur.Name = p.Name; cur.Title = p.Title; cur.Tagline = p.Tagline; cur.Summary = p.Summary;
             cur.Location = p.Location; cur.Email = p.Email; cur.Github = p.Github; cur.Linkedin = p.Linkedin;
+            cur.AvailabilityNote = p.AvailabilityNote; cur.AvailabilityVisible = p.AvailabilityVisible;
             // Profile.Skills is [NotMapped] and [JsonIgnore], so it never arrives
             // on the request and copying it here achieved nothing. Skills are
             // managed through SkillsController.
