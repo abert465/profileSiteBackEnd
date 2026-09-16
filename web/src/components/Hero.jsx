@@ -39,20 +39,36 @@ export default function Hero({ profile }) {
             </a>
             <a href="/resume.pdf" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-900">Download Resume</a>
           </div>
-          <div className="mt-6 flex gap-4 text-sm">
-            <span className="px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 border dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20">.NET 8–9</span>
+          {/* Profile.Skills is [JsonIgnore], so these cannot come from the
+              profile payload and have to be stated here. Keep them matching the
+              resume: they sit above the fold, and a recruiter reading both
+              documents will notice if the range disagrees. */}
+          <div className="mt-6 flex flex-wrap gap-4 text-sm">
+            <span className="px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 border dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20">.NET 6–10</span>
             <span className="px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20">React & Vue</span>
             <span className="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20">Azure DevOps</span>
           </div>
         </motion.div>
 
-        {/* Right: image panel (was empty)*/}
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.1 }} className="relative h-64 md:h-80">
-          <div className=" absolute inset-0 rounded-3xl  w-[26rem] md:w-[32rem] lg:w-[38rem] aspect-[300/200] bg-gradient-to-br from-indigo-500/20 via-fuchsia-500/10 to-slate-800/20 p-6">
-            <div className="absolute inset-0 rounded-3xl overflow-hidden ring-1 ring-black/5 dark:ring-white/10 shadow-lg" />
-            <img src={imgSrc} alt={profile?.name ? `${profile.name} portrait` : 'Profile photo'} loading='eager' fetchPriority='high' className="block h-full w-full object-cover rounded-3xl" />
-          </div>
-          <div className="pointer-events-none absolute inset-0 bg-black/0" />
+        {/* Right: headshot.
+            The previous version combined `absolute inset-0` with an explicit
+            w-[38rem] and a 3:2 aspect, so the width overrode the inset and the
+            panel escaped its grid column — the photo ran past the right edge and
+            was clipped. It also stacked an empty ring/shadow div *behind* the
+            image, where the ring could never show, plus a fully transparent
+            bg-black/0 overlay that did nothing. Both are gone; the ring now sits
+            on the image itself and the glow is a blurred layer behind it. */}
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.1 }} className="relative mx-auto w-full max-w-sm">
+          <div aria-hidden="true" className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-indigo-500/20 via-fuchsia-500/10 to-slate-800/20 blur-xl" />
+          <img
+            src={imgSrc}
+            alt={profile?.name ? `${profile.name}, headshot` : 'Profile photo'}
+            width={900}
+            height={900}
+            loading="eager"
+            fetchPriority="high"
+            className="relative block w-full aspect-square rounded-3xl object-cover ring-1 ring-black/5 dark:ring-white/10 shadow-lg"
+          />
         </motion.div>
       </div>
     </section>
