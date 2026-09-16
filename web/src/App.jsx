@@ -49,7 +49,7 @@ export default function App(){
       <Testimonials testimonials={testimonials} />
       <Blog posts={posts} />
       <Contact profile={profile} />
-      <Footer />
+      <Footer profile={profile} />
     </div>
   )
 }
