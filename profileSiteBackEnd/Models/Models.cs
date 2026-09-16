@@ -141,7 +141,15 @@ namespace profileSiteBackEnd.Models
         new Project
         {
             SortOrder = 4,
-            ImageUrl = "/uploads/projects/enterprise-cloud-migration.svg",
+            // An architecture diagram of the actual move: IIS and the databases
+            // inside the AWS boundary, two arrows for the two applications, and
+            // Salesforce crossing both sides because those integrations had to
+            // survive the cutover. Replaces an AI-illustration of two clouds and
+            // an arrow, which was decoration rather than evidence.
+            //
+            // enterprise-cloud-migration.svg is still in this folder, unused: a
+            // hand-built version of the same idea, kept as a fallback.
+            ImageUrl = "/uploads/projects/enterprise-cloud-migration.jpg",
             Slug = "enterprise-cloud-migration",
             Title = "AWS to Azure Platform Migration",
             Description = "Moved two .NET applications — one consumer facing, one business facing — off self‑managed IIS on AWS onto Azure App Services across two months, carrying Salesforce and third‑party data provider integrations with them.",
