@@ -100,8 +100,7 @@ public class DbSeeder
             .FirstAsync(ct);
 
         // ---- Skills (table) ----
-        // Use SampleData profile’s Skills list as initial set (visible, ordered by index)
-        var initialSkills = seedProfile.Skills ?? new List<string>();
+        var initialSkills = SampleData.GetSkills();
         Console.WriteLine($"[SEED] Initial skills in SampleData: {initialSkills.Count}");
 
         var existingSkills = await _db.Skills
@@ -109,10 +108,13 @@ public class DbSeeder
             .ToListAsync(ct);
 
         var byName = existingSkills.ToDictionary(s => s.Name, s => s);
-        for (int i = 0; i < initialSkills.Count; i++)
+        var seenNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var seed in initialSkills)
         {
-            var name = (initialSkills[i] ?? string.Empty).Trim();
+            var name = (seed.Name ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(name)) continue;
+            seenNames.Add(name);
 
             if (!byName.TryGetValue(name, out var row))
             {
@@ -120,16 +122,36 @@ public class DbSeeder
                 {
                     ProfileId = profileId,
                     Name = name,
+                    Category = seed.Category,
                     IsVisible = true,
-                    Order = i
+                    Order = seed.Order
                 });
                 added["skills"]++;
             }
             else
             {
-                // keep admin visibility; just align order
-                if (row.Order != i) row.Order = i;
+                // Keep admin visibility — hiding a chip is a panel decision — but
+                // align order and category, which are structure rather than state.
+                if (row.Order != seed.Order) row.Order = seed.Order;
+                if (row.Category != seed.Category) row.Category = seed.Category;
             }
+        }
+
+        // Skills were the last list with no orphan sweep, which made SampleData
+        // write-only: deleting a skill left the chip on the live site forever,
+        // and renaming one left the old spelling behind as a duplicate beside
+        // the new one. Projects, Experience, Education and Certifications all
+        // sweep; this now matches them.
+        //
+        // The trade is the same as theirs: SampleData is authoritative, so a
+        // skill added through the admin panel and never added here is removed on
+        // the next seed run. Hiding a seeded skill via IsVisible still works and
+        // is the way to drop one without a deploy.
+        var orphanSkills = existingSkills.Where(s => !seenNames.Contains(s.Name)).ToList();
+        if (orphanSkills.Count > 0)
+        {
+            Console.WriteLine($"[SEED] Removing {orphanSkills.Count} skill(s) no longer in SampleData: {string.Join(", ", orphanSkills.Select(s => s.Name))}");
+            _db.Skills.RemoveRange(orphanSkills);
         }
 
         // ---- Projects (keyed by Slug) ----

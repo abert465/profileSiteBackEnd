@@ -4,11 +4,16 @@ import {
   addSkillAdmin,
   updateSkillAdmin,
   deleteSkillAdmin,
+  listSkillCategoriesAdmin,
 } from "../../lib/adminApi";
 
 export default function SkillsList() {
   const [rows, setRows] = useState([]);
   const [name, setName] = useState("");
+  // Category drives the grouping on the public Skills section. Anything without
+  // one renders under "Other" rather than disappearing.
+  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState([]);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(true);
@@ -41,6 +46,9 @@ export default function SkillsList() {
 
   useEffect(() => {
     load();
+    listSkillCategoriesAdmin()
+      .then((c) => setCategories(Array.isArray(c) ? c : []))
+      .catch(() => setCategories([]));
   }, []);
 
   async function add(e) {
@@ -49,7 +57,12 @@ export default function SkillsList() {
     setSaving(true);
     setErr("");
     try {
-      const created = await addSkillAdmin(name.trim(), true, rows.length);
+      const created = await addSkillAdmin(
+        name.trim(),
+        true,
+        rows.length,
+        category || null
+      );
       setRows((r) => [...r, created]);
       setName("");
     } catch (ex) {
@@ -73,11 +86,17 @@ export default function SkillsList() {
       ? skill.sortOrder
       : 0;
 
-    // Exact keys your DTO expects: Name, IsVisible, Order
+    // Category is sent back unchanged. The API treats an omitted category as
+    // "leave it alone", but sending it explicitly keeps this honest if that
+    // ever changes.
+    const currentCategory = skill.category ?? skill.Category ?? null;
+
+    // Exact keys your DTO expects: Name, IsVisible, Order, Category
     const payload = {
       Name: name,
       IsVisible: !currentVisible,
       Order: order,
+      Category: currentCategory,
     };
 
     try {
@@ -92,12 +111,14 @@ export default function SkillsList() {
               isVisible:
                 updated.isVisible ?? updated.IsVisible ?? !currentVisible,
               order: updated.order ?? updated.Order ?? order,
+              category: updated.category ?? updated.Category ?? currentCategory,
             }
           : {
               ...skill,
               name,
               isVisible: !currentVisible,
               order,
+              category: currentCategory,
             };
 
       setRows((rows) => rows.map((r) => ((r.id ?? r.Id) === id ? next : r)));
@@ -107,6 +128,28 @@ export default function SkillsList() {
     } catch (ex) {
       setErr(String(ex.message || ex));
       throw ex;
+    }
+  }
+
+  async function changeCategory(skill, next) {
+    const id = skill.id ?? skill.Id;
+    const payload = {
+      Name: skill.name ?? skill.Name ?? "",
+      IsVisible: (skill.isVisible ?? skill.IsVisible ?? true) === true,
+      Order: skill.order ?? skill.Order ?? 0,
+      // Empty string is the deliberate "clear it" signal; null would mean
+      // "leave it alone" and the select would appear to do nothing.
+      Category: next ?? "",
+    };
+    try {
+      await updateSkillAdmin(id, payload);
+      setRows((rows) =>
+        rows.map((r) =>
+          (r.id ?? r.Id) === id ? { ...r, category: next || null } : r
+        )
+      );
+    } catch (ex) {
+      setErr(String(ex.message || ex));
     }
   }
 
@@ -132,6 +175,19 @@ export default function SkillsList() {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
+          <select
+            className="border rounded p-2"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            aria-label="Category"
+          >
+            <option value="">No category</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
           <button
             disabled={saving}
             className="rounded bg-blue-600 text-white px-4 py-2"
@@ -148,6 +204,7 @@ export default function SkillsList() {
         <thead className="bg-gray-50 dark:bg-gray-900">
           <tr>
             <th className="p-2 border">Name</th>
+            <th className="p-2 border w-56">Category</th>
             <th className="p-2 border w-40">Visibility</th>
             <th className="p-2 border w-40">Actions</th>
           </tr>
@@ -155,7 +212,7 @@ export default function SkillsList() {
         <tbody>
           {!loading && rows.length === 0 ? (
             <tr>
-              <td className="p-2 border text-sm text-zinc-500" colSpan={3}>
+              <td className="p-2 border text-sm text-zinc-500" colSpan={4}>
                 No skills yet. Add your first one above.
               </td>
             </tr>
@@ -163,6 +220,21 @@ export default function SkillsList() {
             rows.map((s) => (
               <tr key={s.id} className="border-t">
                 <td className="p-2">{s.name}</td>
+                <td className="p-2">
+                  <select
+                    className="border rounded p-1 text-sm w-full"
+                    value={s.category ?? ""}
+                    onChange={(e) => changeCategory(s, e.target.value)}
+                    aria-label={`Category for ${s.name}`}
+                  >
+                    <option value="">Other</option>
+                    {categories.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </td>
                 <td className="p-2">
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full ${

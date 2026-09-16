@@ -9,6 +9,7 @@ using System.Threading.RateLimiting;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using profileSiteBackEnd;
+using profileSiteBackEnd.Models;
 using profileSiteBackEnd.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -312,12 +313,30 @@ app.MapGet("/api/profile", async (AppDbContext db) =>
 
     if (p is null) return Results.NotFound();
 
-    var skills = await db.Skills.AsNoTracking()
+    var skillRows = await db.Skills.AsNoTracking()
         .Where(s => s.ProfileId == p.Id && s.IsVisible)
         .OrderBy(s => s.Order ?? int.MaxValue)
         .ThenBy(s => s.Name)
-        .Select(s => s.Name)
+        .Select(s => new { s.Name, s.Category })
         .ToListAsync();
+
+    var skills = skillRows.Select(s => s.Name).ToList();
+
+    // Grouped for the Skills section, which renders one labelled block per
+    // category. Categories come out in SampleData.SkillCategories order rather
+    // than alphabetically or by insertion. Anything with no category, or one not
+    // on that list, collects under "Other", so a skill added through the admin
+    // panel still appears somewhere instead of vanishing.
+    var categoryOrder = SampleData.SkillCategories
+        .Select((name, index) => (name, index))
+        .ToDictionary(x => x.name, x => x.index, StringComparer.Ordinal);
+
+    var skillGroups = skillRows
+        .GroupBy(s => string.IsNullOrWhiteSpace(s.Category) ? "Other" : s.Category!, StringComparer.Ordinal)
+        .OrderBy(g => categoryOrder.TryGetValue(g.Key, out var i) ? i : int.MaxValue)
+        .ThenBy(g => g.Key, StringComparer.Ordinal)
+        .Select(g => new { category = g.Key, items = g.Select(s => s.Name).ToList() })
+        .ToList();
 
     // Project to the shape your React expects (camelCase already configured)
     return Results.Ok(new
@@ -335,7 +354,10 @@ app.MapGet("/api/profile", async (AppDbContext db) =>
         // to the front end until it is listed here.
         availabilityNote = p.AvailabilityNote,
         availabilityVisible = p.AvailabilityVisible,
+        // Flat list kept alongside the grouped one: it is the older contract and
+        // still the simplest thing for any consumer that just wants the names.
         skills,
+        skillGroups,
         links = p.Links
     });
 });

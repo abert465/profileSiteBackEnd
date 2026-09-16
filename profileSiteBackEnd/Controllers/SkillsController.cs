@@ -26,6 +26,15 @@ namespace profileSiteBackEnd.Controllers
         #endregion
 
         #region <methods>
+        // Blank and whitespace-only both mean "no category", so they are stored
+        // as null. Otherwise the public grouping would show an empty heading.
+        private static string? Normalise(string? category) =>
+            string.IsNullOrWhiteSpace(category) ? null : category.Trim();
+
+        /// <summary>The categories the public page renders, in render order.</summary>
+        [HttpGet("categories")]
+        public ActionResult<string[]> Categories() => Ok(SampleData.SkillCategories);
+
         [HttpGet]
         public async Task<ActionResult<List<Skill>>> List()
         {
@@ -38,7 +47,7 @@ namespace profileSiteBackEnd.Controllers
             return Ok(rows);
         }
 
-        public record UpsertSkillDto(string Name, bool? IsVisible, int? Order);
+        public record UpsertSkillDto(string Name, bool? IsVisible, int? Order, string? Category);
 
         [HttpPost]
         [ServiceFilter(typeof(ValidateAntiforgeryHeaderAttribute))]
@@ -53,7 +62,7 @@ namespace profileSiteBackEnd.Controllers
             var exists = await _db.Skills.AnyAsync(s => s.ProfileId == pid && s.Name == name);
             if (exists) return Conflict(new { error = "Skill already exists" });
 
-            var row = new Skill { ProfileId = pid.Value, Name = name, IsVisible = dto.IsVisible ?? true, Order = dto.Order };
+            var row = new Skill { ProfileId = pid.Value, Name = name, IsVisible = dto.IsVisible ?? true, Order = dto.Order, Category = Normalise(dto.Category) };
             _db.Skills.Add(row);
             await _db.SaveChangesAsync();
             return Ok(row);
@@ -79,6 +88,13 @@ namespace profileSiteBackEnd.Controllers
 
             if (dto.IsVisible is not null) row.IsVisible = dto.IsVisible.Value;
             row.Order = dto.Order;
+
+            // Omitted category means "leave it alone", not "clear it". The admin
+            // list's visibility toggle posts only Name/IsVisible/Order, so
+            // overwriting unconditionally would null the category every time
+            // someone hid a skill and silently drop the chip into "Other".
+            // Send an empty string to clear it deliberately.
+            if (dto.Category is not null) row.Category = Normalise(dto.Category);
 
             await _db.SaveChangesAsync();
             return Ok(row);

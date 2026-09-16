@@ -48,7 +48,7 @@ export default function App(){
         <Hero profile={profile} />
         <About profile={profile} />
         <Projects projects={projects} />
-        <Skills skills={profile?.skills} />
+        <Skills groups={profile?.skillGroups} skills={profile?.skills} />
         <Experience experience={experience} />
         <Education education={education} />
         <Certifications certifications={certifications} />

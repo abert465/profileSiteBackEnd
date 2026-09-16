@@ -81,13 +81,17 @@ export const deleteProject = (slug) =>
 export const listSkillsAdmin = () =>
   fetch(`${prefix}/api/admin/skills`, { credentials: "include" }).then(handle);
 
-export const addSkillAdmin = (name, isVisible = true, order = null) =>
+export const addSkillAdmin = (name, isVisible = true, order = null, category = null) =>
   fetch(`${prefix}/api/admin/skills`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json", ...csrfHeader() },
-    body: JSON.stringify({ name, isVisible, order }),
+    body: JSON.stringify({ name, isVisible, order, category }),
   }).then(handle);
+
+// The categories the public Skills section groups by, in render order.
+export const listSkillCategoriesAdmin = () =>
+  fetch(`${prefix}/api/admin/skills/categories`, { credentials: "include" }).then(handle);
 
 export const updateSkillAdmin = (id, patch) =>
   fetch(`${prefix}/api/admin/skills/${id}`, {

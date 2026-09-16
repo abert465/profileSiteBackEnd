@@ -46,28 +46,95 @@ namespace profileSiteBackEnd.Models
             // not a deploy.
             AvailabilityNote = "Open to full-stack .NET roles",
             AvailabilityVisible = true,
-            Skills = new()
-        {
-            // Backend & Languages
-            // Plain ASCII hyphen in "T-SQL": a non-breaking hyphen (U+2011) here
-            // looked identical on screen but seeded a second, duplicate chip.
-            "C#", ".NET 6-10", "ASP.NET Core", "Blazor", "Razor Pages", "Entity Framework", "Dapper", "LINQ", "VB.NET", "T-SQL", "PowerShell",
-            // Frontend
-            "React", "Vue", "TypeScript", "JavaScript", "HTML5", "CSS3", "Bootstrap",
-            // Cloud & DevOps
-            "Azure App Services", "Azure Pipelines", "Azure SQL", "AKS", "Azure Functions", "AWS EC2/IIS", "Docker", "CI/CD", "IaC",
-            // APIs & Architecture
-            "REST APIs", "Microservices", "Swagger/OpenAPI", "System Integration",
-            // Databases & Reporting
-            "SQL Server", "Stored Procedures", "SSIS", "SSRS", "Performance Tuning",
-            // Tools & Practices
-            "Git", "Azure DevOps", "Visual Studio", "JIRA", "Salesforce", "Power Automate", "Agile/Scrum", "SDLC", "TDD", "OOP", "MVVM", "Unit Testing", "Code Review"
-        },
+            // Derived from GetSkills() so there is one source of truth. The
+            // property is [NotMapped] and ignored by the context; the Skills
+            // table is what actually persists.
+            Skills = GetSkills().Select(s => s.Name).ToList(),
             Links = new() {
             new Link{ Label = "GitHub", Url = "https://github.com/abert465"},
             new Link{ Label = "LinkedIn", Url = "https://www.linkedin.com/in/albert-campos/"}
         }
         };
+
+        /// <summary>
+        /// Skill categories, in render order. Skills.jsx groups by these and
+        /// picks one icon per category, so a skill whose category is not in this
+        /// list renders under "Other" rather than disappearing.
+        /// </summary>
+        public static readonly string[] SkillCategories =
+        {
+            "Backend & .NET",
+            "Frontend",
+            "Cloud & DevOps",
+            "Data & Reporting",
+            "APIs & Architecture",
+            "Tools & Practices",
+        };
+
+        /// <summary>
+        /// The skills list, categorised and deliberately shorter than it used to
+        /// be. Two rules decided what was cut:
+        ///
+        /// 1. Anything assumed of a hireable senior engineer was removed — OOP,
+        ///    SDLC, Code Review, Unit Testing, MVVM, Agile/Scrum, Visual Studio,
+        ///    JIRA. Rendered in cards identical to C# and Blazor, they flattened
+        ///    the claims that actually carry weight.
+        /// 2. Anything another entry already implies was removed — Razor Pages
+        ///    and LINQ under ASP.NET Core and C#, HTML5/CSS3/Bootstrap under the
+        ///    front-end frameworks, Azure Pipelines under Azure DevOps + CI/CD.
+        ///
+        /// Order within a category is the order it renders.
+        ///
+        /// Plain ASCII hyphen in "T-SQL" and ".NET 6-10": a non-breaking hyphen
+        /// (U+2011) here looks identical on screen but seeds a second, duplicate
+        /// chip.
+        /// </summary>
+        public static List<Skill> GetSkills()
+        {
+            var byCategory = new (string Category, string[] Names)[]
+            {
+                ("Backend & .NET", new[]
+                {
+                    "C#", ".NET 6-10", "ASP.NET Core", "Blazor", "Entity Framework",
+                    "Dapper", "VB.NET", "PowerShell",
+                }),
+                ("Frontend", new[]
+                {
+                    "React", "Vue", "TypeScript", "JavaScript",
+                }),
+                ("Cloud & DevOps", new[]
+                {
+                    "Azure App Services", "Azure Functions", "AKS", "AWS EC2/IIS",
+                    "Docker", "CI/CD", "IaC",
+                }),
+                ("Data & Reporting", new[]
+                {
+                    "SQL Server", "T-SQL", "Azure SQL", "SSIS", "SSRS", "Performance Tuning",
+                }),
+                ("APIs & Architecture", new[]
+                {
+                    "REST APIs", "Swagger/OpenAPI", "Microservices",
+                }),
+                ("Tools & Practices", new[]
+                {
+                    "Git", "Azure DevOps", "Salesforce", "Power Automate", "TDD",
+                }),
+            };
+
+            var skills = new List<Skill>();
+            var order = 0;
+            foreach (var (category, names) in byCategory)
+                foreach (var name in names)
+                    skills.Add(new Skill
+                    {
+                        Name = name,
+                        Category = category,
+                        IsVisible = true,
+                        Order = order++,
+                    });
+
+            return skills;
+        }
 
         public static List<Project> GetProjects() => new()
     {
@@ -424,6 +491,10 @@ namespace profileSiteBackEnd.Models
     {
         public int Id { get; set; } // Auto-incremented primary key
         public string Name { get; set; } = string.Empty;
+        // Groups the chip under a heading on the public page. Nullable because
+        // rows predate this column and a skill added through the admin panel
+        // may not have one; those render under "Other".
+        public string? Category { get; set; }
         public bool IsVisible { get; set; } = true; // Default to visible
         public int? Order { get; set; } // Default order for sorting
 
