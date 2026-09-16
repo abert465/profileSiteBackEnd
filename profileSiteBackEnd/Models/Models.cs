@@ -296,7 +296,11 @@ namespace profileSiteBackEnd.Models
                 "Implement configuration‑driven role‑based access control so new municipal clients onboard without code changes.",
                 "Maintain and extend legacy VB.NET/ASP.NET applications alongside the new platform, shipping fixes and client‑requested enhancements."
             },
-            Tech = new(){ ".NET 8", "C#", "Blazor", "SQL Server", "T-SQL", "VB.NET", "ASP.NET" }
+            // Chips carry the stack; the bullets carry the story. Five is the
+            // cap — past that they stop being scannable and start competing
+            // with the text above them. T-SQL folds into SQL Server and the two
+            // legacy frameworks travel together.
+            Tech = new(){ ".NET 8", "C#", "Blazor", "SQL Server", "VB.NET/ASP.NET" }
         },
         new Experience
         {
@@ -313,7 +317,7 @@ namespace profileSiteBackEnd.Models
                 "Rebuilt release on Azure DevOps pipelines, moving deploys from a scheduled manual event to a zero‑downtime push, and set the code review and SDLC practice the team ran on.",
                 "Built Salesforce solutions in Apex and Visualforce with SOQL/SOSL data access, plus Flow automation and integrations through Salesforce APIs, Power Automate, and Azure Functions."
             },
-            Tech = new(){ ".NET 8", "EF Core", "React", "Vue", "Azure DevOps", "SQL Server", "Salesforce" }
+            Tech = new(){ ".NET 8", "EF Core", "React/Vue", "Azure DevOps", "Salesforce" }
         },
         new Experience
         {
@@ -327,9 +331,12 @@ namespace profileSiteBackEnd.Models
                 "Owned full lifecycle development of internal banking tools in C# and ASP.NET used by 500+ employees across daily operations.",
                 "Built SQL Server stored procedures and SSIS ETL pipelines feeding reporting over large transactional datasets.",
                 "Developed SSRS reports giving leadership direct visibility into operational banking metrics.",
-                "Standardized Git branching and code review across the development team, cutting merge conflicts roughly 30%."
+                // Phrased as a fraction rather than "roughly 30%", which the
+                // Easy Expunctions entry above already uses. Two identical
+                // round numbers on one page read as estimates, not measurements.
+                "Standardized Git branching and code review across the development team, cutting merge conflicts by about a third."
             },
-            Tech = new(){ "ASP.NET", "C#", "SQL Server", "SSIS", "SSRS", "Git" }
+            Tech = new(){ "C#", "ASP.NET", "SQL Server", "SSIS/SSRS", "Git" }
         },
         // The two Inspired eLearning roles and the two Chase roles are each a
         // single entry covering the full span, with the promotion noted in the
@@ -354,14 +361,17 @@ namespace profileSiteBackEnd.Models
         new Experience
         {
             Company = "Chase Bank",
-            Role = "Operations Sr. Specialist",
+            // "Operations Sr. Specialist" is the internal title; written out it
+            // reads as an ordinary seniority marker to anyone outside the bank.
+            Role = "Senior Operations Specialist",
             RoleNote = "Started as Technology Operations Intern",
             Location = "San Antonio, TX",
             Start = new DateTime(2013,7,1),
             End = new DateTime(2017,1,1),
             Highlights = new()
             {
-                "Audited daily operational workflows and implemented process improvements that raised team productivity about 15%; resolved 1,000+ Tier 1 VOIP, VDI, and desktop cases as an intern before moving into the specialist role."
+                "Audited daily operational workflows and implemented process improvements that raised team productivity about 15%.",
+                "Resolved 1,000+ Tier 1 VOIP, VDI, and desktop cases as an intern before moving into the specialist role."
             },
             Tech = new(){ "Windows", "VDI" }
         }
