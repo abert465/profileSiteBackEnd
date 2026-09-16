@@ -10,7 +10,13 @@ namespace profileSiteBackEnd.Models
         public static Profile GetProfile() => new()
         {
             Name = "Albert Campos",
-            Title = "Software Developer",
+            // Positioning, not an employment record: every role below is titled
+            // "Software Developer" by the employer, and those stay as they are.
+            // This states the level the work has actually been at — sole
+            // developer on two production platforms, led development and set the
+            // SDLC practice at Easy Expunctions — and the level being applied
+            // for. The resume's summary opener matches it deliberately.
+            Title = "Senior .NET Developer",
             // Plain ASCII hyphen and a real em dash. The old tagline used U+2011
             // non-breaking hyphens, the same character that seeded a duplicate
             // skill chip further down this file.
