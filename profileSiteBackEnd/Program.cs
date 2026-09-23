@@ -262,6 +262,9 @@ if (!app.Environment.IsDevelopment())
 //                          bootstrap was moved to /theme-init.js for exactly
 //                          this reason - putting it back inline breaks the
 //                          theme silently, with only a console violation.
+//                          static.cloudflareinsights.com is the Cloudflare Web
+//                          Analytics beacon, injected at the edge (not in
+//                          index.html). Drop it if analytics is turned off.
 //   style-src   'unsafe-inline'  framer-motion and React set element styles
 //                          through the CSSOM, which CSP does not govern, but
 //                          framer-motion also injects <style> elements for
@@ -270,7 +273,9 @@ if (!app.Environment.IsDevelopment())
 //                          not a reading of the source.
 //   img-src     https:     project and uploaded images may be hosted anywhere;
 //                          data: covers inlined SVG from lucide-react.
-//   connect-src 'self'     the front end only ever calls its own /api.
+//   connect-src 'self'     the front end only ever calls its own /api; the
+//                          cloudflareinsights.com entry is where the analytics
+//                          beacon above posts its measurements.
 //   frame-ancestors 'none' the modern form of the X-Frame-Options above, which
 //                          stays for older browsers that ignore this directive.
 //   object-src / base-uri / form-action  close the plugin, <base> rewrite, and
@@ -280,11 +285,11 @@ if (!app.Environment.IsDevelopment())
 // Sent on every response, including API JSON, where it is inert but harmless.
 const string contentSecurityPolicy =
     "default-src 'self'; " +
-    "script-src 'self'; " +
+    "script-src 'self' https://static.cloudflareinsights.com; " +
     "style-src 'self' 'unsafe-inline'; " +
     "img-src 'self' data: https:; " +
     "font-src 'self' data:; " +
-    "connect-src 'self'; " +
+    "connect-src 'self' https://cloudflareinsights.com; " +
     "object-src 'none'; " +
     "base-uri 'self'; " +
     "form-action 'self'; " +
