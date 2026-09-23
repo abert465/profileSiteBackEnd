@@ -1,97 +1,87 @@
-// The three most recent roles carry full detail; anything older renders as a
-// one-line entry. Index-based rather than a hardcoded cutoff year, so adding a
-// job automatically demotes the oldest one instead of growing the section.
-const FULL_DETAIL_COUNT = 3
+import { useState } from 'react'
+import Chips from './Chips'
 
 export default function Experience({ experience = [] }) {
-  const detailed = experience.slice(0, FULL_DETAIL_COUNT)
-  const earlier = experience.slice(FULL_DETAIL_COUNT)
+  // Keyed by index; the most recent role starts open so the section leads
+  // with detail instead of five closed rows.
+  const [open, setOpen] = useState({ 0: true })
+
+  const firstYear = experience.length
+    ? Math.min(...experience.map(e => new Date(e.start).getFullYear()))
+    : null
 
   return (
-    <section id="experience" className="py-16 border-t dark:border-gray-800">
-      <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-2xl font-bold">Experience</h2>
-
-        <ol className="mt-6 border-l dark:border-gray-800">
-          {detailed.map((e, idx) => (
-            <li key={idx} className="relative ml-6 mb-8">
-              <Dot />
-              <h3 className="text-base font-semibold">{e.company}</h3>
-              <p className="text-sm text-gray-700 dark:text-gray-300">{e.role}</p>
-              <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-400">
-                <Meta e={e} />
-              </p>
-              {e.roleNote ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400 italic">{e.roleNote}</p>
-              ) : null}
-              {/* list-outside plus padding keeps wrapped lines aligned to the
-                  text edge instead of running back under the marker, and the
-                  measure caps at roughly 80 characters so long highlights stay
-                  readable at desktop width. */}
-              <ul className="mt-3 max-w-3xl ps-5 list-disc list-outside space-y-1.5 marker:text-blue-600/70 text-gray-700 dark:text-gray-300">
-                {e.highlights?.map((h, i) => <li key={i}>{h}</li>)}
-              </ul>
-              {e.tech?.length ? (
-                <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  {e.tech.map(t => (
-                    <span key={t} className="px-2 py-1 rounded-full border dark:border-gray-800">{t}</span>
-                  ))}
-                </div>
-              ) : null}
-            </li>
-          ))}
-        </ol>
-
-        {earlier.length ? (
-          <div className="mt-2">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              Earlier
-            </h3>
-            <ol className="mt-4 border-l dark:border-gray-800">
-              {earlier.map((e, idx) => (
-                <li key={idx} className="relative ml-6 mb-5">
-                  <Dot muted />
-                  <h4 className="text-sm font-semibold">
-                    {e.company}
-                    <span className="font-normal text-gray-700 dark:text-gray-300"> — {e.role}</span>
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    <Meta e={e} />
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        ) : null}
+    <section id="experience" className="pb-[clamp(56px,8vw,96px)]">
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-4">
+        <h2 className="font-display text-[clamp(34px,4vw,52px)] font-normal tracking-[-0.02em]">Experience</h2>
+        {firstYear && (
+          <span className="font-mono text-[12.5px] uppercase tracking-[.06em] text-muted">{firstYear} — Present</span>
+        )}
       </div>
+
+      <ol className="border-t border-ink">
+        {experience.map((e, idx) => {
+          const isOpen = !!open[idx]
+          const panelId = `experience-${idx}`
+          return (
+            <li key={idx} className="border-b border-rule">
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={panelId}
+                onClick={() => setOpen(s => ({ ...s, [idx]: !s[idx] }))}
+                className="flex w-full cursor-pointer flex-wrap items-baseline gap-x-8 gap-y-1.5 py-5 text-left transition-colors hover:bg-hover"
+              >
+                <span className="flex-[0_0_150px] font-mono text-[13px] text-muted">
+                  {format(e.start)} — {e.end ? format(e.end) : 'Present'}
+                </span>
+                <span className="flex min-w-0 flex-[1_1_300px] flex-col gap-[3px]">
+                  <span className="font-display text-2xl leading-[1.2] tracking-[-0.01em]">{e.company}</span>
+                  <span className="text-[15.5px] text-body">
+                    {e.role}
+                    {e.roleNote && <span className="text-muted"> · {e.roleNote}</span>}
+                  </span>
+                </span>
+                <span className="ml-auto flex flex-none items-baseline gap-4 whitespace-nowrap font-mono text-[12.5px] text-muted">
+                  <span>{duration(e.start, e.end)}</span>
+                  <span aria-hidden="true" className="text-[15px] text-ink">{isOpen ? '−' : '+'}</span>
+                </span>
+              </button>
+
+              {isOpen && (
+                <div id={panelId} className="pb-[26px] pl-[clamp(0px,30vw_-_90px,182px)]">
+                  {e.location && <p className="mb-3 font-mono text-xs text-muted">{e.location}</p>}
+                  {e.highlights?.length > 0 && (
+                    <ul className="flex max-w-[70ch] flex-col gap-2.5">
+                      {e.highlights.map((h, i) => (
+                        <li key={i} className="flex gap-3 text-base leading-[1.55] text-body">
+                          <span aria-hidden="true" className="flex-none text-accent">—</span>
+                          <span>{h}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <Chips items={e.tech} className="mt-4" />
+                </div>
+              )}
+            </li>
+          )
+        })}
+      </ol>
     </section>
   )
 }
 
-// Decorative: the timeline reads from the dates, so the marker is hidden from
-// screen readers. top is explicit rather than relying on static position.
-function Dot({ muted = false }) {
-  // li is inset 1.5rem (ml-6) from the list border and the dot is 0.75rem wide,
-  // so -1.875rem centers it on the line.
-  return (
-    <span
-      aria-hidden="true"
-      className={`absolute -left-[1.875rem] top-1.5 w-3 h-3 rounded-full ${
-        muted ? 'bg-gray-400 dark:bg-gray-600' : 'bg-blue-600'
-      }`}
-    />
-  )
-}
-
-function Meta({ e }) {
-  return (
-    <>
-      {format(e.start)} – {e.end ? format(e.end) : 'Present'}
-      {e.location ? ` • ${e.location}` : ''}
-    </>
-  )
-}
-
 function format(d){
-  try { return new Date(d).toLocaleString(undefined, { month: 'short', year: 'numeric' }) } catch { return '' }
+  try { return new Date(d).toLocaleString('en-US', { month: 'short', year: 'numeric' }) } catch { return '' }
+}
+
+// Whole months between start and end (or now), as "2 yr 7 mo".
+function duration(start, end){
+  const s = new Date(start)
+  const e = end ? new Date(end) : new Date()
+  const months = Math.max(0, (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth()))
+  const y = Math.floor(months / 12)
+  const m = months % 12
+  return [y ? `${y} yr` : '', m ? `${m} mo` : ''].filter(Boolean).join(' ') || '1 mo'
 }

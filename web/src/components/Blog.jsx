@@ -1,19 +1,43 @@
+// Post has no topic field yet; keyed by slug until it does. A post without an
+// entry shows its read time alone.
+const TOPICS = {
+  'optimizing-tsql': 'SQL Server',
+  'ci-cd-azure-devops': 'Azure DevOps',
+}
+
 export default function Blog({ posts = [] }) {
+  if (posts.length === 0) return null
+
   return (
-    <section id="blog" className="py-16 border-t dark:border-gray-800">
-      <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-2xl font-bold">Latest Articles</h2>
-        <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts.map(p => (
-            <article key={p.slug} className="rounded-2xl border bg-white p-5 dark:bg-gray-900 dark:border-gray-800">
-              <h3 className="font-semibold text-lg">{p.title}</h3>
-              <p className="text-gray-700 mt-1 dark:text-gray-300">{p.excerpt}</p>
-              <p className="text-sm text-gray-500 mt-2 dark:text-gray-400">{new Date(p.published).toLocaleDateString()}</p>
-              <a className="inline-block mt-3 text-blue-600" href={`#post-${p.slug}`}>Read more →</a>
-            </article>
-          ))}
-        </div>
-      </div>
+    <section id="writing" className="pb-[clamp(56px,8vw,96px)]">
+      <h2 className="mb-3 font-display text-[clamp(34px,4vw,52px)] font-normal tracking-[-0.02em]">Writing</h2>
+      <ul className="border-t border-ink">
+        {posts.map(p => (
+          <li key={p.slug}>
+            <a
+              href={`#post-${p.slug}`}
+              className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] items-baseline gap-x-8 gap-y-1.5 border-b border-rule py-6 transition-colors hover:bg-hover"
+            >
+              <span className="font-mono text-[12.5px] text-muted">
+                {[TOPICS[p.slug], `${readMinutes(p.content)} min`].filter(Boolean).join(' · ')}
+              </span>
+              <span className="col-span-2 font-display text-[clamp(22px,2.4vw,28px)] leading-[1.2] tracking-[-0.01em] text-pretty max-sm:col-span-1">
+                {p.title}
+              </span>
+              <span className="flex justify-between gap-3 text-[15.5px] text-body">
+                <span>{p.excerpt}</span>
+                <span aria-hidden="true" className="text-accent">→</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
     </section>
   )
+}
+
+// 200 words a minute, never under one.
+function readMinutes(content = ''){
+  const words = content.trim().split(/\s+/).filter(Boolean).length
+  return Math.max(1, Math.round(words / 200))
 }

@@ -1,23 +1,18 @@
-import React from 'react'
-import { motion } from 'framer-motion'
-import { Code2, Database, Atom, Cloud, Wrench, Network, Cpu } from 'lucide-react'
+// Display order, keyed by the category strings in SampleData.SkillCategories.
+// Data & Reporting sits second rather than in seed order because SQL is a core
+// strength, not an afterthought. Unknown categories fall to the end.
+const ORDER = [
+  'Backend & .NET',
+  'Data & Reporting',
+  'Cloud & DevOps',
+  'Frontend',
+  'APIs & Architecture',
+  'Tools & Practices',
+]
 
-// One icon per category, not per skill.
-//
-// The old pickIcon() guessed from the label with substring matching and fell
-// back to a generic </> for everything it missed, so TypeScript, Git, JIRA,
-// Salesforce and Agile/Scrum all rendered identically — and AKS got </> while
-// Azure Functions got a cloud, because "aks" does not contain "azure". Same
-// platform, different icon, for no reason a reader could see.
-//
-// Keyed by the category strings in SampleData.SkillCategories.
-const CATEGORY_ICONS = {
-  'Backend & .NET': Cpu,
-  Frontend: Atom,
-  'Cloud & DevOps': Cloud,
-  'Data & Reporting': Database,
-  'APIs & Architecture': Network,
-  'Tools & Practices': Wrench,
+const rank = c => {
+  const i = ORDER.indexOf(c)
+  return i === -1 ? ORDER.length : i
 }
 
 export default function Skills({ groups, skills = [] }) {
@@ -25,55 +20,25 @@ export default function Skills({ groups, skills = [] }) {
   // the section degrades to the old flat behaviour rather than rendering empty.
   const resolved =
     Array.isArray(groups) && groups.length > 0
-      ? groups
+      ? [...groups].sort((a, b) => rank(a.category) - rank(b.category))
       : skills.length > 0
         ? [{ category: null, items: skills }]
         : []
 
   if (resolved.length === 0) return null
 
-  let index = 0
-
   return (
-    <section id="skills" className="py-20 border-t dark:border-gray-800">
-      <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-2xl font-bold">Skills</h2>
-
-        <div className="mt-8 space-y-8">
-          {resolved.map((group) => {
-            const Icon = CATEGORY_ICONS[group.category] ?? Code2
-            return (
-              <div key={group.category ?? 'all'}>
-                {group.category && (
-                  <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    {group.category}
-                  </h3>
-                )}
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {group.items.map((name) => {
-                    // Stagger across the whole section rather than restarting per
-                    // group, so the reveal reads as one pass down the page. Capped
-                    // so the last chip does not wait out a long delay.
-                    const delay = Math.min(index++ * 0.02, 0.6)
-                    return (
-                      <motion.li
-                        key={name}
-                        initial={{ opacity: 0, y: 8 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay }}
-                        className="rounded-lg border bg-white/80 px-3 py-1.5 text-sm shadow-sm dark:bg-gray-900/80 dark:border-gray-800"
-                      >
-                        {name}
-                      </motion.li>
-                    )
-                  })}
-                </ul>
-              </div>
-            )
-          })}
-        </div>
+    <section id="skills" className="pb-[clamp(56px,8vw,96px)]">
+      <h2 className="mb-3 font-display text-[clamp(34px,4vw,52px)] font-normal tracking-[-0.02em]">Toolkit</h2>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-x-8 border-t border-ink">
+        {resolved.map(group => (
+          <div key={group.category ?? 'all'} className="border-b border-rule pt-[22px] pb-6">
+            {group.category && (
+              <h3 className="mb-3 font-mono text-xs uppercase tracking-[.07em] text-accent">{group.category}</h3>
+            )}
+            <p className="font-display text-[21px] leading-[1.45] tracking-[-0.005em] text-pretty">{group.items.join(', ')}</p>
+          </div>
+        ))}
       </div>
     </section>
   )

@@ -169,7 +169,7 @@ namespace profileSiteBackEnd.Models
             ImageUrl = "/uploads/projects/automated-expunction-engine.jpg",
             Slug = "automated-expunction-engine",
             Title = "Expunction Automation Platform",
-            Description = "Consumer legal platform that takes someone from \"what is on my record\" to a signed court petition: a .NET 8 layered API behind a React front end, covering intake, eligibility, court document generation, and the payment plan that funds the filing. Passwordless sign-in throughout — SMS codes and emailed magic links.",
+            Description = "Consumer legal platform that takes someone from \"what is on my record\" to a signed court petition: a .NET 8 layered API behind a React front end, covering intake, eligibility, court document generation, and the payment plan that funds the filing.",
             Tech = new(){".NET 8", "React", "EF Core", "SQL Server", "Azure", "Stripe", "Salesforce API", "iText"},
             RepoUrl = null,
             LiveUrl = "https://www.easyexpunctions.com/",
@@ -192,7 +192,7 @@ namespace profileSiteBackEnd.Models
             ImageUrl = "/uploads/projects/police-overtime-scheduling.jpg",
             Slug = "police-overtime-scheduling",
             Title = "Police Overtime Scheduling Portal",
-            Description = "Blazor Server replacement for the Boston Police Department's legacy \"Blue Note\" overtime workflow: request intake, hours-based assignment and call-in ordering, and the printed lists the department runs on. Live link is the sign-in page — the portal is department staff only.",
+            Description = "Blazor Server replacement for the Boston Police Department's legacy \"Blue Note\" overtime workflow: request intake, hours-based assignment and call-in ordering, and the printed lists the department runs on.",
             Tech = new(){ ".NET 8", "Blazor Server", "SQL Server", "OpenID Connect SSO", "Clean Architecture" },
             RepoUrl = null,
             LiveUrl = "https://bostonot.extradutysolutions.com/",
@@ -209,11 +209,11 @@ namespace profileSiteBackEnd.Models
             ImageUrl = "/uploads/projects/naas-nexus-work-orders.jpg",
             Slug = "naas-nexus-work-orders",
             Title = "Aviation MRO Work Order Platform",
-            Description = "Blazor Server operations portal in production for an aircraft fuel tank MRO: work order lifecycle, labor budgets, crew scheduling, and a public job postings API consumed by naasllc.com. The live link is the sign-in page — the portal itself is staff-only.",
+            Description = "Blazor Server operations portal in production for an aircraft fuel tank MRO: work order lifecycle, labor budgets, crew scheduling, and a public job postings API consumed by naasllc.com.",
             Tech = new(){ ".NET 9", "Blazor Server", "ASP.NET Identity", "JWT", "EF Core", "SQL Server" },
             RepoUrl = null,
-            // Links to a login wall by design. The card says so up front, since the
-            // button just reads "Live" and an unexplained gate looks broken.
+            // Links to a login wall by design. Projects.jsx labels the link
+            // "sign-in · staff only", since an unexplained gate looks broken.
             LiveUrl = "https://nexus.naasllc.com/",
             Highlights = new(){
                 "Budget engine rolls time entries into per-task actuals and flags overruns before they land",
@@ -242,12 +242,12 @@ namespace profileSiteBackEnd.Models
         new Project
         {
             SortOrder = 6,
-            // No screenshot yet and both repositories are private, so the card
-            // renders the initial-letter placeholder and shows no buttons.
+            // No screenshot yet and both repositories are private, so the row
+            // renders the striped placeholder and "In progress · private repo".
             ImageUrl = null,
             Slug = "smartfit-nutrition-tracker",
             Title = "SmartFit Nutrition Tracker",
-            Description = "In-progress nutrition and fitness tracker: a Fastify and TypeScript API over Postgres paired with a React Native client, where a meal can be logged by photo, by barcode, by scanning a nutrition label, or by search.",
+            Description = "Nutrition and fitness tracker: a Fastify and TypeScript API over Postgres paired with a React Native client, where a meal can be logged by photo, by barcode, by scanning a nutrition label, or by search.",
             Tech = new(){ "TypeScript", "Fastify", "Prisma", "PostgreSQL", "React Native", "Gemini API" },
             RepoUrl = null,
             LiveUrl = null,
@@ -265,7 +265,7 @@ namespace profileSiteBackEnd.Models
         new Post
         {
             Slug = "optimizing-tsql",
-            Title = "How I Optimized a Critical T‑SQL Stored Procedure by 40%",
+            Title = "How I optimized a critical T‑SQL stored procedure by 40%",
             Excerpt = "Index tuning, sargability, and measured rollouts.",
             Published = DateTime.UtcNow.AddDays(-18),
             Content = "When I joined the legal automation platform team, one stored procedure sat at the center of case processing — and at peak load it was the single biggest source of timeouts. Here's how I brought it from a multi-second bottleneck down to something that felt instant.\n\n## Finding the real cost\n\nQuery plans lie if you only look at estimated cost. I pulled actual execution plans under production-like data volume and found two problems: a non-sargable WHERE clause (wrapping an indexed date column in a function, which killed index usage) and an implicit conversion between a VARCHAR parameter and an NVARCHAR column, forcing a full scan on every call.\n\n## Fixing sargability\n\nRewriting the predicates so SQL Server could seek instead of scan was the single biggest win. Instead of filtering on `CONVERT(date, CreatedAt) = @date`, I filtered on a range: `CreatedAt >= @date AND CreatedAt < DATEADD(day, 1, @date)`. Same result set, but now the optimizer could actually use the index.\n\n## Matching types end to end\n\nThe implicit conversion was quieter but just as expensive — invisible in the query text, visible only in the execution plan as an unexpected scan. Aligning the parameter type to the column type let the seek kick in everywhere that predicate was used, not just in this one procedure.\n\n## Measured rollout\n\nI didn't ship this on faith. I benchmarked before/after on a copy of production data, deployed behind the existing CI/CD pipeline, and watched real latency metrics post-release rather than just trusting the query plan. End result: ~40% reduction in execution time, and the timeout errors tied to this procedure dropped to zero.\n\nThe lesson that stuck with me: most SQL performance problems aren't about clever tricks, they're about making sure the optimizer can actually use the indexes you already built."
@@ -273,7 +273,7 @@ namespace profileSiteBackEnd.Models
         new Post
         {
             Slug = "ci-cd-azure-devops",
-            Title = "CI/CD in Azure DevOps: Practical Patterns",
+            Title = "CI/CD in Azure DevOps: practical patterns",
             Excerpt = "Pipelines, approvals, and safe deployments.",
             Published = DateTime.UtcNow.AddDays(-7),
             Content = "Moving a legal automation platform to a real CI/CD pipeline in Azure DevOps cut our release time by roughly 60% and got us to zero-downtime deploys. None of it was exotic — it was a handful of practical patterns applied consistently.\n\n## Pipeline as code, not click-ops\n\nEvery pipeline lived in YAML, checked into the repo alongside the code it built. That meant pipeline changes went through the same PR review as application code, and a broken pipeline was debuggable the same way as a broken feature.\n\n## Build once, deploy many times\n\nThe same build artifact moved through dev, staging, and production — no environment-specific rebuilds. This closed off an entire class of \"works in staging, breaks in prod\" bugs caused by dependency drift between builds.\n\n## Approvals where they matter, automation everywhere else\n\nAutomated gates (unit tests, integration tests, static analysis) ran on every push with no human in the loop. Manual approval was reserved for the one step that actually needed a human: promoting to production. That kept the pipeline fast without giving up control over what reached users.\n\n## Zero-downtime by default\n\nDeploys used slot swapping on Azure App Services — deploy to a staging slot, run smoke tests against it, then swap. If the swap revealed a problem, swapping back was just as fast as swapping forward, so rollback was never a scramble.\n\n## What it added up to\n\nRelease time dropped about 60%, and deploys stopped being an event anyone dreaded. The biggest shift wasn't tooling, it was treating deployment as a routine, low-risk action instead of a rare, high-stakes one."

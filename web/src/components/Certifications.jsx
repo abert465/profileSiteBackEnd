@@ -1,24 +1,29 @@
 export default function Certifications({ certifications = [] }) {
   return (
-    <section id="certifications" className="py-16 border-t dark:border-gray-800">
-      <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-2xl font-bold">Certifications</h2>
-        <ul className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {certifications.map((c, idx) => (
-            <li key={idx} className="rounded-xl border bg-white/80 p-4 dark:bg-gray-900/80 dark:border-gray-800">
-              <div className="font-semibold">{c.name}</div>
-              {c.issuer && <div className="text-sm text-gray-600 dark:text-gray-400">{c.issuer}</div>}
-              <div className="text-xs text-gray-500 mt-1 dark:text-gray-400">
-                {c.issued ? `Issued ${format(c.issued)}` : ''}{c.expires ? ` • Expires ${format(c.expires)}` : ''}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
+    <div>
+      <h2 className="mb-3 font-display text-[clamp(28px,3vw,38px)] font-normal tracking-[-0.02em]">Certifications</h2>
+      <ul className="border-t border-ink">
+        {certifications.map((c, idx) => (
+          <li key={idx} className="flex flex-wrap items-baseline justify-between gap-4 border-b border-rule py-4">
+            <span className="flex flex-col gap-0.5">
+              <span className="text-[17px] font-medium">{c.name}</span>
+              {c.issuer && <span className="text-[14.5px] text-muted">{c.issuer}</span>}
+            </span>
+            <span className="font-mono text-[12.5px] text-muted">{dateLabel(c)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
+// A current certification shows how long it holds; a lapsed or open-ended one
+// shows when it was earned, since its expiry is no longer the useful fact.
+function dateLabel(c){
+  if (c.expires && new Date(c.expires) > new Date()) return `Valid to ${format(c.expires)}`
+  return c.issued ? format(c.issued) : ''
+}
+
 function format(d){
-  try { return new Date(d).toLocaleString(undefined, { month: 'short', year: 'numeric' }) } catch { return '' }
+  try { return new Date(d).toLocaleString('en-US', { month: 'short', year: 'numeric' }) } catch { return '' }
 }

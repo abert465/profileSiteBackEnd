@@ -1,22 +1,105 @@
 @import "tailwindcss";
 
+/* Self-hosted rather than pulled from Google Fonts: the CSP in Program.cs keeps
+   font-src and style-src at 'self', and a third-party font host would have to
+   be allowed in both. */
+@import "@fontsource-variable/newsreader/opsz.css";
+@import "@fontsource-variable/newsreader/opsz-italic.css";
+@import "@fontsource/hanken-grotesk/400.css";
+@import "@fontsource/hanken-grotesk/500.css";
+@import "@fontsource/hanken-grotesk/600.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+
 /* Enable manual dark-mode toggling via `.dark` on <html> */
 @custom-variant dark (&:where(.dark, .dark *));
 
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
-  100% { transform: translateY(0px); }
+/* Editorial palette. Light values here, dark overrides below; Tailwind reads
+   them through @theme inline so `bg-paper`, `text-ink` and the rest follow the
+   theme class without a dark: variant on every element. The contact band is
+   drawn inverted (ink background), so it has its own accent and muted tones. */
+:root {
+  --paper: #f3f0e8;
+  --ink: #1c1b18;
+  --muted: #625e55;
+  --body: #3d3a33;
+  --rule: #d6d1c4;
+  --chip: #cbc5b6;
+  --hover: #ebe7dc;
+  --stripe: #e4dfd2;
+  --dash: #b4ad9c;
+  --accent: #d42a3c;
+  --accent2: #ff5364;
+  --cmuted: #b5ae9f;
+  --cborder: #5a564d;
+  --crule: #3a3731;
+  --green: #2f7a4c;
+  --gborder: #b9cdb8;
+  --gbg: #e8eee2;
+  --bar: rgba(243, 240, 232, .9);
+  --photo-filter: saturate(.85);
 }
 
-@keyframes sheen {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+.dark {
+  --paper: #151411;
+  --ink: #ece8de;
+  --muted: #a39d90;
+  --body: #cfc9bc;
+  --rule: #2c2a25;
+  --chip: #3a3731;
+  --hover: #1f1d19;
+  --stripe: #25221d;
+  --dash: #4a463e;
+  --accent: #ff5364;
+  --accent2: #d42a3c;
+  --cmuted: #625e55;
+  --cborder: #b4ad9c;
+  --crule: #cbc5b6;
+  --green: #7fc49a;
+  --gborder: #2f4a38;
+  --gbg: #17231b;
+  --bar: rgba(21, 20, 17, .88);
+  --photo-filter: saturate(.8) brightness(.92);
 }
 
-/* Utility class for animated gradient borders */
-.gradient-border {
-  background: linear-gradient(90deg, #60a5fa, #a78bfa, #60a5fa);
-  background-size: 200% 100%;
-  animation: sheen 6s linear infinite;
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-body: var(--body);
+  --color-rule: var(--rule);
+  --color-chip: var(--chip);
+  --color-hover: var(--hover);
+  --color-stripe: var(--stripe);
+  --color-dash: var(--dash);
+  --color-accent: var(--accent);
+  --color-accent2: var(--accent2);
+  --color-cmuted: var(--cmuted);
+  --color-cborder: var(--cborder);
+  --color-crule: var(--crule);
+  --color-green: var(--green);
+  --color-gborder: var(--gborder);
+  --color-gbg: var(--gbg);
+  --color-bar: var(--bar);
+
+  --font-display: "Newsreader Variable", Georgia, serif;
+  --font-body: "Hanken Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-xs: 3px;
+}
+
+/* Scoped to the public site so the admin panel, which shares this stylesheet
+   and the <body> classes, keeps its own look. */
+body:has(.site) {
+  background: var(--paper);
+}
+
+.site ::selection {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.site section[id] {
+  scroll-margin-top: 72px;
 }

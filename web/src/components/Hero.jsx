@@ -1,5 +1,8 @@
 import { motion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
+
+// Struck-through phrases in the headline. The rule colour and weight are what
+// make them read as "replaced" rather than as a correction.
+const strike = 'line-through decoration-accent decoration-[3px]'
 
 export default function Hero({ profile }) {
 
@@ -16,81 +19,85 @@ export default function Hero({ profile }) {
   const availability = profile?.availabilityNote?.trim()
   const showAvailability = Boolean(profile?.availabilityVisible && availability)
 
-  return (
-    <section id="home" className="relative">
-      <div className="max-w-6xl mx-auto px-4 py-20 grid md:grid-cols-2 gap-10 items-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          {/* Availability badge, driven by Profile.AvailabilityNote /
-              AvailabilityVisible. Editable from /admin/profile, so ending the
-              search is a toggle rather than a deploy. */}
-          {showAvailability && (
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-              {/* The ping runs forever, so it is the one animation on the page
-                  that keeps moving after the reveal settles. motion-reduce
-                  leaves the solid dot and drops the pulse. */}
-              <span aria-hidden="true" className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75 motion-reduce:hidden" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
-              {availability}
-            </p>
-          )}
-          {/* The two spans are read as one accessible name, so without the
-              separator it announces as "Albert CamposSoftware Developer". The
-              comma is hidden from sight and only exists for that reading. */}
-          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
-            <span className="bg-gradient-to-r from-blue-600 via-sky-500 to-indigo-600 bg-clip-text text-transparent">
-              {profile?.name}
-            </span>
-            <span className="sr-only">, </span>
-            <span className="block text-gray-900 mt-2 dark:text-white">{profile?.title}</span>
-          </h1>
-          <p className="mt-4 text-lg text-gray-700 dark:text-gray-300">{profile?.tagline}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#projects" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow">
-              View My Work <ArrowRight className="h-4 w-4"/>
-            </a>
-            {/* `download` keeps the button honest: without it the PDF opens in
-                the browser's viewer and the portfolio is gone from the tab. */}
-            <a href="/resume.pdf" download type="application/pdf" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-900">Download Resume</a>
-          </div>
-          {/* Profile.Skills is [JsonIgnore], so these cannot come from the
-              profile payload and have to be stated here. Keep them matching the
-              resume: they sit above the fold, and a recruiter reading both
-              documents will notice if the range disagrees. */}
-          <div className="mt-6 flex flex-wrap gap-4 text-sm">
-            <span className="px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 border dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20">.NET 6–10</span>
-            <span className="px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20">React & Vue</span>
-            <span className="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20">Azure DevOps</span>
-          </div>
-        </motion.div>
+  const name = profile?.name || 'Albert Campos'
+  const email = profile?.email || 'acampos892@gmail.com'
+  const eyebrow = [profile?.title, profile?.location].filter(Boolean).join(' · ')
 
-        {/* Right: headshot.
-            The previous version combined `absolute inset-0` with an explicit
-            w-[38rem] and a 3:2 aspect, so the width overrode the inset and the
-            panel escaped its grid column — the photo ran past the right edge and
-            was clipped. It also stacked an empty ring/shadow div *behind* the
-            image, where the ring could never show, plus a fully transparent
-            bg-black/0 overlay that did nothing. Both are gone; the ring now sits
-            on the image itself and the glow is a blurred layer behind it. */}
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.1 }} className="relative mx-auto w-full max-w-sm">
-          <div aria-hidden="true" className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-indigo-500/20 via-fuchsia-500/10 to-slate-800/20 blur-xl" />
-          <img
-            src={imgSrc}
-            srcSet={imgSrcSet}
-            // The frame is max-w-sm, so 384px once the two-column layout kicks
-            // in at md. Without this the browser assumes 100vw and pulls the
-            // 900w file onto phones, where the 480w one is already oversized.
-            sizes="(min-width: 768px) 384px, 100vw"
-            alt={profile?.name ? `${profile.name}, headshot` : 'Profile photo'}
-            width={900}
-            height={900}
-            loading="eager"
-            fetchPriority="high"
-            className="relative block w-full aspect-square rounded-3xl object-cover ring-1 ring-black/5 dark:ring-white/10 shadow-lg"
-          />
-        </motion.div>
-      </div>
+  return (
+    <section id="home" className="flex flex-wrap items-end gap-[clamp(32px,5vw,64px)] pt-[clamp(48px,8vw,104px)] pb-[clamp(40px,6vw,72px)]">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="min-w-0 flex-[1_1_560px]"
+      >
+        {/* Availability badge, driven by Profile.AvailabilityNote /
+            AvailabilityVisible. Editable from /admin/profile, so ending the
+            search is a toggle rather than a deploy. */}
+        {showAvailability && (
+          <p className="mb-7 inline-flex items-center gap-2.5 rounded-xs border border-gborder bg-gbg px-3 py-[7px] font-mono text-[12.5px] tracking-[.04em] text-green">
+            {/* The ping runs forever, so it is the one animation on the page
+                that keeps moving after the reveal settles. motion-reduce
+                leaves the solid dot and drops the pulse. */}
+            <span aria-hidden="true" className="relative inline-flex h-2 w-2">
+              <span className="absolute inset-0 animate-ping rounded-full bg-green opacity-60 motion-reduce:hidden" />
+              <span className="relative h-2 w-2 rounded-full bg-green" />
+            </span>
+            {availability}
+          </p>
+        )}
+        {eyebrow && (
+          <p className="mb-5 font-mono text-[13px] uppercase tracking-[.06em] text-muted">{eyebrow}</p>
+        )}
+        {/* The first line of Profile.Summary, with markup the plain-text field
+            cannot carry. Keep the two in step if either changes. */}
+        <h1 className="font-display text-[clamp(38px,5.6vw,72px)] font-normal leading-[1.04] tracking-[-0.025em] text-pretty">
+          Most of what I build replaces <span className={strike}>a spreadsheet</span>,{' '}
+          <span className={strike}>a paper form</span>, or{' '}
+          <em className={strike}>something a person did by hand every Friday.</em>
+        </h1>
+        {profile?.tagline && (
+          <p className="mt-7 max-w-[600px] text-[19px] leading-[1.55] text-body text-pretty">{profile.tagline}</p>
+        )}
+        <div className="mt-9 flex flex-wrap items-center gap-3">
+          <a href="#work" className="inline-flex items-center rounded-xs bg-ink px-5 py-3.5 text-base font-medium text-paper transition-colors hover:bg-accent">
+            See the work →
+          </a>
+          {/* `download` keeps the button honest: without it the PDF opens in
+              the browser's viewer and the portfolio is gone from the tab. */}
+          <a href="/resume.pdf" download type="application/pdf" className="inline-flex items-center rounded-xs border border-ink px-5 py-[13px] text-base font-medium transition-colors hover:bg-ink hover:text-paper">
+            Download résumé
+          </a>
+          <a href={`mailto:${email}`} className="ml-2 font-mono text-[13.5px] underline decoration-accent underline-offset-[3px] hover:text-accent">
+            {email}
+          </a>
+        </div>
+      </motion.div>
+
+      <motion.figure
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+        className="min-w-[240px] flex-[0_1_320px]"
+      >
+        <img
+          src={imgSrc}
+          srcSet={imgSrcSet}
+          // The column tops out at 320px, so the 480w file covers it at 1.5x.
+          // Without this the browser assumes 100vw and pulls the 900w file.
+          sizes="(min-width: 640px) 320px, 100vw"
+          alt={`${name}, headshot`}
+          width={900}
+          height={1125}
+          loading="eager"
+          fetchPriority="high"
+          className="block aspect-[4/5] w-full rounded-xs object-cover object-[50%_30%] [filter:var(--photo-filter)]"
+        />
+        <figcaption className="mt-2.5 flex justify-between font-mono text-[11.5px] uppercase tracking-[.05em] text-muted">
+          <span>{name}</span>
+          <span>Est. 2013</span>
+        </figcaption>
+      </motion.figure>
     </section>
   )
 }
